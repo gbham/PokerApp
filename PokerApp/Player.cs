@@ -145,36 +145,29 @@ namespace PokerApp
         //    throw new NotImplementedException();
         //}
 
-        internal bool StraightFound()
+       internal bool StraightFound()
         {
-
             //var fullBoard = this.CardOne + this.CardTwo + Board.FlopSlot1 + Board.FlopSlot2 + Board.FlopSlot3 + Board.TurnSlot + Board.RiverSlot;
             //var fullBoard = "3C" + "3H" + "JC" + "10C" + "7S" + "8H" + "9H";
-            var fullBoardList = new List<string>() { "2C", "KH", "10C", "QC", "JS", "8H", "6H" };
+            var fullBoardList = new List<string>() { "AC", "AH", "3C", "AC", "5S", "7H", "6H" };
 
             var fullBoardListInt = Board.RemoveSuitsAndReplaceFaceCardsWithInts(fullBoardList);
 
             fullBoardListInt.Sort();
 
-            for (var i = 1; i < 5; i++)
-            {
-                var counter = 0;
+            var counter = 0;           
 
+            for (var i = 1; i < 7; i++)
+            {
                 if ((fullBoardListInt[i] - 1).Equals(fullBoardListInt[i - 1]))
                 {
-                    counter++;
-
-                    for (var x = i + 1; x < 7; x++)
-                    {
-
-                        //THIS IS TO HANDLE THE SITUATION I HAVE since I can only change "Ace" to a 0 or to a 14. There is probs a better, simpler way to handle this
-                        if (fullBoardListInt[x].Equals(13)) { if ((fullBoardListInt[0]).Equals(0)) { counter++; } else { break; } }
-                        //THIS IS TO HANDLE THE SITUATION I HAVE since I can only change "Ace" to a 0 or to a 14. There is probs a better, simpler way to handle this
+                    counter++;                                      
 
 
-                        if ((fullBoardListInt[x] - 1).Equals(fullBoardListInt[x - 1])) { counter++; } else { break; }
-
-                    }
+                    //THIS IS TO HANDLE THE SITUATION I HAVE since I can only change "Ace" to a 1 or to a 14. There is probs a better, simpler way to handle this
+                    if (fullBoardListInt[i].Equals(13)) { if ((fullBoardListInt[0]).Equals(1)) { counter++; } }
+                    //THIS IS TO HANDLE THE SITUATION I HAVE since I can only change "Ace" to a 1 or to a 14. There is probs a better, simpler way to handle this
+                                       
 
                     if (counter >= 4) 
                     {
@@ -183,6 +176,13 @@ namespace PokerApp
                         return true; 
                     }
                 }
+                else
+                {
+                    counter = 0;
+                }
+
+                if (i == 3 && counter < 1) { Console.WriteLine($"break used"); break; }
+
             }
 
             return false;

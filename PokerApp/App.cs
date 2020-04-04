@@ -42,19 +42,19 @@ namespace PokerApp
 
 
 
-            //Tyrion.StraightFound();
+            Tyrion.StraightFound();
 
 
-            while (!GameOver)
-            {
-                Board.ChipsInPot = 0;
-                Dealer.DealHoleCards();
+            //while (!GameOver)
+            //{
+            //    Board.ChipsInPot = 0;
+            //    Dealer.DealHoleCards();
 
-                PlayHand();
+            //    PlayHand();
 
-                //At the moment, this is set up to win the first time it is ran
-                Dealer.CheckForGameWinner();
-            }
+            //    //At the moment, this is set up to win the first time it is ran
+            //    Dealer.CheckForGameWinner();
+            //}
         }
 
         
@@ -181,7 +181,7 @@ namespace PokerApp
         {
             var PlayersInHand = Board.GetPlayersInHand();
 
-            if (PlayersInHand.Count < 1)
+            if (PlayersInHand.Count < 2)
             {
                 Console.WriteLine($"The Winner of the hand is {PlayersInHand[0].Name}");
             }

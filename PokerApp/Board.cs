@@ -78,7 +78,7 @@ namespace PokerApp
             //Removing all suits and face cards so calculations can be done against ints
             for (var i = 0; i < fullBoardList.Count; i++)
             {
-                fullBoardList[i] = fullBoardList[i].Replace("H", "").Replace("D", "").Replace("S", "").Replace("C", "").Replace("A", "0").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
+                fullBoardList[i] = fullBoardList[i].Replace("H", "").Replace("D", "").Replace("S", "").Replace("C", "").Replace("A", "1").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
             }
 
             var onlyNumbersList = fullBoardList.Select(int.Parse).ToList();
