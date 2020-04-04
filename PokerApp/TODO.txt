@@ -1,0 +1,17 @@
+﻿-Need to consider the blinds
+-Also need to consider the person that starts the hand changes each time. First thoughts are to have a list of the players that changes after each hand played. I think just putting the player at position 1 in the list to the end should solve the issue.
+-Need to handle min raises
+-Need to add some instructions on format of user input and a help menu at some point
+-If the money needed to call puts the player all in, then there shouldnt be an option to "Raise"
+-If people are all in then I need to ensure that the flop/turn/river is shown
+-Deal with ChipsNeededToCall
+-******Make a structured list of tasks and features
+-care with the difference between the hand ending due to someone folding and due to the hand ending cause someone is all in. I might treat HandIsOver in too much of a general way
+-Need to account for someone being all in on the river and winning, but they cant get all the chips since they were short stack, I then need to assign those chips to the 2nd best hand and I suppose even one more time in a very rare scenario, I might be able to loop whatever process I create until the pot is "cleared"
+-maybe have a dealer class to thandle dealing and blinds, maybe not worth it tho, depends on the complexity of other classes
+-Not sure if it will be possible to have a one sixe fits all GetKicker() function. 
+-I think I should maybe just be determining highestPair for example and kicker within OnePairFound() etc. #
+-Care with how I determine kickers, if it is a straight/flush then I have no choice but to choose one of those 5 cards. With most other hands I can use any in the 7 availiable
+-maybe i should have all "fullBoard" saved in a List<string>, instead of just a string in some cases
+-the ability to muck or show hands
+-ensure I have functions in the correct class, there can be some ambiguity with some functions that could belong to both Dealer/Board and maybe player. Keep these in mind and try find ways to seperate the functions into clearer categories 
