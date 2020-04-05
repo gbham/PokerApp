@@ -42,7 +42,7 @@ namespace PokerApp
 
 
 
-            Tyrion.StraightFound();
+            Tyrion.FullHouseFound();
 
 
             //while (!GameOver)

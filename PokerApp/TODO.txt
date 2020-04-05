@@ -12,6 +12,8 @@
 -Not sure if it will be possible to have a one sixe fits all GetKicker() function. 
 -I think I should maybe just be determining highestPair for example and kicker within OnePairFound() etc. #
 -Care with how I determine kickers, if it is a straight/flush then I have no choice but to choose one of those 5 cards. With most other hands I can use any in the 7 availiable
--maybe i should have all "fullBoard" saved in a List<string>, instead of just a string in some cases
+-maybe i should have all "fullBoard" saved in a List<string>, instead of just a string in some cases - Think best would be to store it as a list then turn into a string where appropiate, easier than the other way round
 -the ability to muck or show hands
+-at some point I need to convert all player.BestKickers that equal 1 to 14.
 -ensure I have functions in the correct class, there can be some ambiguity with some functions that could belong to both Dealer/Board and maybe player. Keep these in mind and try find ways to seperate the functions into clearer categories 
+-ensure i am always interacting with the correct property - "public string HighestPair { get { return highestPair; } set { highestPair = value; } }"

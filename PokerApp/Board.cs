@@ -73,12 +73,14 @@ namespace PokerApp
             return "Fold, Check, Bet";
         }
 
-        internal static List<int> RemoveSuitsAndReplaceFaceCardsWithInts(List<string> fullBoardList)
+       
+
+        internal static List<int> ReplaceFaceCardsWithInts(List<string> fullBoardList)
         {
             //Removing all suits and face cards so calculations can be done against ints
             for (var i = 0; i < fullBoardList.Count; i++)
             {
-                fullBoardList[i] = fullBoardList[i].Replace("H", "").Replace("D", "").Replace("S", "").Replace("C", "").Replace("A", "1").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
+                fullBoardList[i] = fullBoardList[i].Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
             }
 
             var onlyNumbersList = fullBoardList.Select(int.Parse).ToList();
@@ -86,6 +88,27 @@ namespace PokerApp
             return onlyNumbersList;
         }
 
+        internal static int ReplaceFaceCardsWithInts(string card)
+        {
+            card = card.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");            
+
+            return Convert.ToInt32(card);
+        }
+
+
+
+        internal static List<string> RemoveSuits(List<string> fullBoardList)
+        {            
+            for (var i = 0; i < fullBoardList.Count; i++)
+            {
+                fullBoardList[i] = fullBoardList[i].Replace("H", "").Replace("D", "").Replace("S", "").Replace("C", "");
+            }            
+
+            return fullBoardList;
+        }
+
+
+        
 
         
 
