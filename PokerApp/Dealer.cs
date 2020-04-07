@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PokerApp
 {
     static class Dealer
     {
+        private static Player handWinner;
+
+        public static Player HandWinner { get { return handWinner; } set { handWinner = value; } }
 
         public static void DealHoleCards()
         {
@@ -23,6 +27,8 @@ namespace PokerApp
             player.CardOne = Deck.LiveDeck[0];
             player.CardTwo = Deck.LiveDeck[1];
 
+            Console.WriteLine($"{player.Name}'s hand = [{player.CardOne}] + [{player.CardTwo}]");
+
             Deck.LiveDeck.RemoveRange(0, 2);
         }
 
@@ -34,6 +40,7 @@ namespace PokerApp
 
             Deck.LiveDeck.RemoveRange(0, 3);
 
+            Console.WriteLine($"------------------------------------------------------");
             Console.WriteLine($"Round = [Flop] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}");
         }
 
@@ -43,6 +50,7 @@ namespace PokerApp
 
             Deck.LiveDeck.RemoveAt(0);
 
+            Console.WriteLine($"------------------------------------------------------");
             Console.WriteLine($"Round = [Turn] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}, {Board.TurnSlot}");
         }
 
@@ -52,119 +60,23 @@ namespace PokerApp
 
             Deck.LiveDeck.RemoveAt(0);
 
+            Console.WriteLine($"------------------------------------------------------");
             Console.WriteLine($"Round = [River] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}, {Board.TurnSlot}, {Board.RiverSlot}");
         }
 
 
 
 
-        internal static Player GetPlayerWithBestHand(List<Player> PlayersInHand)
-        {
-            var winner = new Player();
-            var PotentialWinners = new List<Player>();
-
-            foreach (var player in PlayersInHand)
-            {
-                //This only returns a general assessment, as in, high card equals 0, three of a kind equals 3.
-                player.BestHandType = player.DetermineStrongestHandType();
-            }
-
-            for (var i = 0; i < PlayersInHand.Count - 1; i++)
-            {
-                if (PlayersInHand[i].BestHandType > winner.BestHandType)
-                {
-                    winner = PlayersInHand[i];
-                }
-                else if (PlayersInHand[i].BestHandType.Equals(winner.BestHandType))
-                {
-                    PotentialWinners.Add(PlayersInHand[i]);
-                }
-            }
-
-
-            if (PotentialWinners.Count > 0)
-            {
-                //Now that the loop above is complete and we know the winner for sure, we have to go through the list of "potentialWinners" and remove any that dont match the winner
-                foreach (var potentialWinner in PotentialWinners)
-                {
-                    if (potentialWinner.BestHandType != winner.BestHandType)
-                    {
-                        PotentialWinners.Remove(potentialWinner);
-                    }
-                }
-            }
-            
-
-            if (PotentialWinners.Count > 0)
-            {
-                PotentialWinners.Add(winner);
-
-                /*winner = */ DetermineBestVersionOfStrongestHandType(PotentialWinners);
-
-            }
-
-            return winner;
-
-        }
-
-
-
-
-
-        private static void DetermineBestVersionOfStrongestHandType(List<Player> PotentialWinners)
-        {
-            Player winner;
-
-
-            //*********READ THIS BELOW
-            //IT DOESNT MAKE SENSE TO FIND THE HIGHEST VALUE IN A SEPERATE FUNCTION as I think most the calculations would need to be repeated anyway
-            //it would be much easier to assign player.HighestPairCard and player.ThreeOfAKindValue etc etc when the hand type is being determined in the first place
-            //I could still use this function to compare but I think it would be best to assign these values before
-
-
-            //foreach(var potentialWinner in PotentialWinners)
-            //{
-            //    switch(potentialWinner.BestHandType)
-            //    {
-            //        case 0:
-            //            potentialWinner.HighestCardInHandType = GetPairValue(potentialWinner);                     
-            //            break;
-
-            //        case 1:
-            //            var twoPairValue = GetTwoPairValues(potentialWinner);
-
-            //            //potentialWinner.HighestPair = twoPairValue[0];
-            //            //potentialWinner.SecondHighestPair = twoPairValue[1];
-            //            
-            //            break;
-
-
-
-
-
-            //    }
-
-
-
-
-            //}
 
 
 
 
 
 
-
-
-            //return winner;
-        }
-
-
-
-        //Simple and effective way to check if bets are needing dealt with. Check if each player with cards has bet the same amount of chips this round
-        //NOTE: this wont work if someone goes all in, might get stuck in a loop. - I believe I fixed this by only running this function if the player.HasCards and player.Chips > 0
+        //Simple and effective way to tell if bets are needing dealt with by checking if each player with cards has bet the same amount of chips this round
+        //If they have cards, have more than 0 chips, have bet different amounts this round, then action must continue before the round can end (e.g flop)
         internal static bool IsActionOver()
-        {
+        {            
             var PlayersInTheHand = Board.GetPlayersInHand();
 
             if (PlayersInTheHand.Count < 2)
@@ -173,12 +85,21 @@ namespace PokerApp
             }
             else
             {
-                for (var i = 0; i < PlayersInTheHand.Count - 1; i++)
+                for (var i = 1; i < PlayersInTheHand.Count; i++)
                 {
-                    if (PlayersInTheHand[i].ChipsBetThisRound != PlayersInTheHand[i + 1].ChipsBetThisRound)
+                    if (PlayersInTheHand[i].ChipsBetThisRound != PlayersInTheHand[i - 1].ChipsBetThisRound)
                     {
                         //This is needed in case the player is all in. In this scenario they would of course not have bet the same amount of chips as the player with the bigger stack
-                        if (PlayersInTheHand[i].Chips > 0 && PlayersInTheHand[i + 1].Chips > 0)
+                        if (PlayersInTheHand[i].ChipsBetThisRound > PlayersInTheHand[i - 1].ChipsBetThisRound)
+                        {
+                            if (PlayersInTheHand[i].AllIn == true) { return false; }
+                        }
+                        else
+                        {
+                            if (PlayersInTheHand[i - 1].AllIn == true) { return false; }
+                        }
+
+                        if (PlayersInTheHand[i].Chips > 0 && PlayersInTheHand[i - 1].Chips > 0)
                         {
                             return false;
                         }
@@ -210,5 +131,140 @@ namespace PokerApp
         }
 
 
+
+        internal static void DeterminePlayerWithBestHand(List<Player> PlayersInHand)
+        {
+            HandWinner = PlayersInHand[0];
+            var PotentialWinners = new List<Player>();
+
+
+            foreach (var player in PlayersInHand)
+            {
+                //This only returns a general assessment, as in, high card equals 0, three of a kind equals 3.
+                player.BestHandType = player.DetermineStrongestHandType();
+            }
+
+            
+            for (var i = 0; i < PlayersInHand.Count; i++)
+            {
+                if (PlayersInHand[i].BestHandType > HandWinner.BestHandType)
+                {
+                    HandWinner = PlayersInHand[i];
+                }
+                else if (PlayersInHand[i].BestHandType.Equals(HandWinner.BestHandType))
+                {                     
+                    PotentialWinners.Add(PlayersInHand[i]);                                                          
+                }
+            }
+
+            if (PotentialWinners.Count > 0)
+            {
+                //Now that the loop above is complete and we know the BestHandType, we have to go through the list of "potentialWinners" and remove any that dont match the winner
+
+                for (var i = 0; i < PotentialWinners.Count; i++)
+                {
+                    if (PotentialWinners[i].BestHandType != HandWinner.BestHandType)
+                    {
+                        PotentialWinners.Remove(PotentialWinners[i]);
+                    }
+                }
+            }
+
+
+            if (PotentialWinners.Count > 0)
+            {
+                PotentialWinners.Add(HandWinner);
+                PotentialWinners = PotentialWinners.Distinct().ToList();
+
+                DetermineBestVersionOfStrongestHandType(PotentialWinners);
+
+            }   
+        }
+
+        private static void DetermineBestVersionOfStrongestHandType(List<Player> Players)
+        {
+            HandWinner = Players[0];
+
+            //case statements to check player.BestPair(), then to check player.BestThreeOfAKind(), then player.BestKicker if it comes to that
+
+            switch (Players[0].BestHandType)
+            {
+                case 0:
+                    foreach (var player in Players)
+                    {
+                        if (player.BestKicker > HandWinner.BestKicker)
+                        {
+                            HandWinner = player;
+                        }
+                    }
+
+                    break;
+                    
+
+
+                case 1:
+
+                    GetBestOnePair(Players);
+
+                    break;
+                    
+
+                case 2:
+
+
+
+                    break;
+                    
+
+
+
+
+
+
+            }
+
+
+        }
+
+        private static void GetBestOnePair(List<Player> Players)
+        {
+            var PotentialWinners = new List<Player>();
+            HandWinner = Players[0];
+
+            for (var i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].HighestPair > HandWinner.HighestPair)
+                {
+                    HandWinner = Players[i];
+                }
+                else if (Players[i].HighestPair == HandWinner.HighestPair)
+                {
+                    PotentialWinners.Add(Players[i]);
+                }
+            }
+
+            if (PotentialWinners.Count > 0)
+            {
+                //Now that the loop above is complete and we know the winner for sure, we have to go through the list of "PotentialWinners" and remove any that dont match the winner
+                for (var i = 0; i < PotentialWinners.Count; i++)
+                {
+                    if (PotentialWinners[i].HighestPair != HandWinner.HighestPair)
+                    {
+                        PotentialWinners.Remove(PotentialWinners[i]);
+                    }
+                }
+            }
+
+            for (var i = 0; i < PotentialWinners.Count; i++)
+            {
+                if (PotentialWinners[i].BestKicker > HandWinner.BestKicker)
+                {
+                    HandWinner = PotentialWinners[i];
+                }
+
+                //Will need to eventually handle the situation where players share both same top pair and same top kicker. 
+
+            }
+        }
     }
 }

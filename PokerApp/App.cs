@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using static PokerApp.Deck;
 
 namespace PokerApp
 {
     class App
     {
-        internal static bool GameOver = false;
-        
+        internal static bool GameOver = false;        
 
         static Player Tyrion;
         static Player Ford;
@@ -36,13 +33,34 @@ namespace PokerApp
             Ford.Name = "Ford";
             Sherlock.Name = "Sherlock";
 
-            Players = new List<Player>() { Tyrion, Ford, Sherlock };
+            Players = new List<Player>() { Ford, Tyrion, Sherlock };
+
+
+
+            Ford.HasCards = true;
+            Sherlock.HasCards = true;
+            Tyrion.HasCards = true;
+
+            Ford.CardOne = "9H";
+            Ford.CardTwo = "9D";
+
+            Sherlock.CardOne = "AH";
+            Sherlock.CardTwo = "7S";
+
+            Tyrion.CardOne = "9S";
+            Tyrion.CardTwo = "9C";
+
+            Board.FlopSlot1 = "6C";
+            Board.FlopSlot2 = "AS";
+            Board.FlopSlot3 = "3C";
+            Board.TurnSlot = "4C";
+            Board.RiverSlot = "5C";
+
+            DeclareWinnerOfHand();
 
 
 
 
-
-            Tyrion.FullHouseFound();
 
 
             //while (!GameOver)
@@ -62,8 +80,6 @@ namespace PokerApp
 
         public static void PlayHand()
         {
-            Console.WriteLine("In PlayHand");
-
             //TakeTheBlinds();            
 
             PlayRound("PreFlop");
@@ -95,10 +111,9 @@ namespace PokerApp
 
         
 
-        //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
-        public static void PlayRound(string round)
+        
+        public static void PlayRound(string round) //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
         {
-
             Tyrion.ChipsBetThisRound = 0;
             Ford.ChipsBetThisRound = 0;
             Sherlock.ChipsBetThisRound = 0;
@@ -106,15 +121,17 @@ namespace PokerApp
             while (true)
             {                
                 foreach (var player in Players)
-                {                    
-                    if (player.HasCards && player.Chips > 0)
+                {
+                    var PlayersInHand = Board.GetPlayersInHand();
+
+                    if (player.HasCards && player.Chips > 0 && PlayersInHand.Count > 1)
                     {
                         //Console.Clear();
+                        Console.WriteLine($"------------------------------------------------------");
                         Console.WriteLine($"{player.Name}'s Turn");
 
                         
-                        //Determine if check/call and bet/raise should be shown
-                        //loop through each player and check if player.ChipsBetThisRound > 0. (Although, blinds could potentially throws a spanner in the works here depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine
+                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine
                         var output = Board.GetMoveOptions();
                         Console.WriteLine(output);
 
@@ -145,27 +162,27 @@ namespace PokerApp
                         {
                             case "Fold":
                             case "F":
-                                player.Fold(player);
+                                player.Fold();
                                 break;
 
                             case "Check":
                             case "CH":
-                                player.Check(player);
+                                player.Check();
                                 break;
 
                             case "Call":
                             case "CA":
-                                player.Call(player);
+                                player.Call();
                                 break;
 
                             case "Bet":
                             case "B":
-                                player.Bet(player, Convert.ToInt32(value));
+                                player.Bet(Convert.ToInt32(value));
                                 break;
 
                             case "Raise":
                             case "R":
-                                player.Raise(player, Convert.ToInt32(value));
+                                player.Raise(Convert.ToInt32(value));
                                 break;
 
                         }
@@ -183,19 +200,22 @@ namespace PokerApp
 
             if (PlayersInHand.Count < 2)
             {
-                Console.WriteLine($"The Winner of the hand is {PlayersInHand[0].Name}");
+                Console.WriteLine($"The Winner of the hand is {PlayersInHand[0].Name}.");
+                Dealer.HandWinner = PlayersInHand[0];
             }
             else
-            {
-                //var app = new App();
-                var winner = Dealer.GetPlayerWithBestHand(PlayersInHand);
-                Console.WriteLine($"The Winner of the hand is {winner.Name}");
+            {               
+                Dealer.DeterminePlayerWithBestHand(PlayersInHand);
+                Console.WriteLine($"The Winner of the hand is {Dealer.HandWinner.Name}. He has a hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}. With the kicker of: {Dealer.HandWinner.BestKicker}");
+                Console.WriteLine("");
+                Console.WriteLine($"The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}, {Board.TurnSlot}, {Board.RiverSlot}");
+                Console.WriteLine("");
+                Console.WriteLine($"{Ford.Name}'s cards were: [{Ford.CardOne}] + [{Ford.CardTwo}] ");
+                Console.WriteLine($"{Tyrion.Name}'s cards were: [{Tyrion.CardOne}] + [{Tyrion.CardTwo}] ");
+                Console.WriteLine($"{Sherlock.Name}'s cards were: [{Sherlock.CardOne}] + [{Sherlock.CardTwo}] ");
+                
+
             }
-
-
         }
-
-
-
     }
 }

@@ -7,16 +7,15 @@ namespace PokerApp
 {   
     static class Board
     {
-        //test comment
-
         private static int chipsInPot = 0;        
 
-        internal static string flopSlot1 ="";
-        internal static string flopSlot2 ="";
-        internal static string flopSlot3 ="";
-        internal static string turnSlot ="";
-        internal static string riverSlot ="";
+        internal static string flopSlot1;
+        internal static string flopSlot2;
+        internal static string flopSlot3;
+        internal static string turnSlot;
+        internal static string riverSlot;
         private static bool handIsLive;
+        
 
         public static int ChipsInPot { get { return chipsInPot; } set { chipsInPot = value; } }
 
@@ -27,9 +26,9 @@ namespace PokerApp
         public static string TurnSlot { get { return turnSlot; } set { turnSlot = value; } }
         public static string RiverSlot { get { return riverSlot; } set { riverSlot = value; } }
 
-        public static bool HandIsLive { get { return handIsLive; } set { handIsLive = value; } }       
+        public static bool HandIsLive { get { return handIsLive; } set { handIsLive = value; } }
 
-
+        
 
 
         internal static List<Player> GetPlayersInHand()
@@ -60,6 +59,7 @@ namespace PokerApp
             return true;
         }
 
+        //Determines if check/call and bet/raise should be shown
         internal static string GetMoveOptions()
         {
             foreach (var player in App.Players)
@@ -73,11 +73,9 @@ namespace PokerApp
             return "Fold, Check, Bet";
         }
 
-       
-
+        //Replacing all suits and face cards so calculations can be done against ints
         internal static List<int> ReplaceFaceCardsWithInts(List<string> fullBoardList)
-        {
-            //Removing all suits and face cards so calculations can be done against ints
+        {            
             for (var i = 0; i < fullBoardList.Count; i++)
             {
                 fullBoardList[i] = fullBoardList[i].Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
@@ -88,14 +86,12 @@ namespace PokerApp
             return onlyNumbersList;
         }
 
-        internal static int ReplaceFaceCardsWithInts(string card)
+        internal static int ReplaceFaceCardWithInts(string card)
         {
             card = card.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");            
 
             return Convert.ToInt32(card);
         }
-
-
 
         internal static List<string> RemoveSuits(List<string> fullBoardList)
         {            
@@ -106,12 +102,6 @@ namespace PokerApp
 
             return fullBoardList;
         }
-
-
-        
-
-        
-
 
     }
 }
