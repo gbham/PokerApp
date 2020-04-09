@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+using static PokerApp.App;
 
 namespace PokerApp
 {
     class Player
     {
         public readonly static int StartingStack = 1000;
+
         private string name;
         private bool hasCards;
         private int chips = StartingStack;
         private int bestHandType = 0;
-        private bool allIn = false;
+        private bool isAllIn = false;
+        private string lastMove;
+
         private int highestCardInHandType;
         private int highestPair;
         private int secondHighestPair;
@@ -34,13 +37,14 @@ namespace PokerApp
         
 
         //Think I may also need a property to hold the 5 "best" cards, which I can then use to deduct the best kicker - not sure actually, determining the kicker might have to be a specific operation for each type of hand or could risk causing unneeded complexity 
-                
+
         public string Name { get { return name; } set { name = value; } }
         public bool HasCards { get { return hasCards; } set { hasCards = value; } }
         public int Chips { get { return chips; } set { chips = value; } }
         public int BestHandType { get { return bestHandType; } set { bestHandType = value; } }
-        public bool AllIn { get { return allIn; } set { allIn = value; } }
-        
+        public bool IsAllIn { get { return isAllIn; } set { isAllIn = value; } }
+        public string LastMove { get { return lastMove; } set { lastMove = value; } }
+
         public int HighestCardInHandType { get { return highestCardInHandType; } set { highestCardInHandType = value; } }
         public int HighestPair { get { return highestPair; } set { highestPair = value; } }
         public int SecondHighestPair { get { return secondHighestPair; } set { secondHighestPair = value; } }
@@ -57,47 +61,92 @@ namespace PokerApp
         
 
 
-        public void Fold() 
+        internal void Fold() 
         {
-            Console.WriteLine($"player [{this.Name}] has folded.");
+            //Console.Clear();
+            //Console.WriteLine($"player [{this.Name}] has folded.");
             this.HasCards = false;
 
             //Maybe have the code in here to determine if folding means there is only 1 player left in the hand, and therefore the hand is over
         }
 
-        public void Check() 
+        internal void Check() 
         {
-            Console.WriteLine($"player [{this.Name}] has checked.");
+            //Console.Clear();
+            var output = $"[{this.Name}] has checked.";
+            //Console.WriteLine(output);
+            Board.LastMoveToBeMade = output;
             //Not sure if there is anything is to be done in here
         }
 
-        public void Call() 
+        internal void Call() 
         {
-            Console.WriteLine($"player [{this.Name}] has called the bet with [{this.ChipsNeededToCall}] chips. (Still need to assign ChipsNeededToCall)");
+            //Console.Clear();
+            //Console.WriteLine($"[{this.Name}] has called the bet with [{this.ChipsNeededToCall}] chips. (Still need to assign ChipsNeededToCall)");
+
+            DetermineChipsNeededToCall();            
 
             Board.ChipsInPot += this.ChipsNeededToCall;
             this.Chips -= this.ChipsNeededToCall;
             this.ChipsBetThisRound += ChipsNeededToCall;
         }
 
-        public void Bet(int value)
+        //***Have to check if the player has the amount of chips avaiable that they are trying to bet
+        //***Have to check if the player has the amount of chips avaiable that they are trying to bet        
+        internal void Bet(int value)
         {
-            Console.WriteLine($"player [{this.Name}] has placed a bet of [{value}] chips.");
+            //Console.Clear();
+            //Console.WriteLine($"[{this.Name}] has placed a bet of [{value}] chips.");
 
             Board.ChipsInPot += value;
             this.Chips -= value;
             this.ChipsBetThisRound += value;
         }
 
-        public void Raise(int value) 
+        internal void Raise(int value) 
         {
-            Console.WriteLine($"player [{this.Name}] has raised [{value}] chips.");
+            //Console.Clear();
+            //Console.WriteLine($"[{this.Name}] has raised to [{value}] chips.");
 
             Board.ChipsInPot += value;
             this.Chips -= value;
             this.ChipsBetThisRound += value;
         }
 
+        internal void AllIn()
+        {
+            //Console.Clear();
+            //Console.WriteLine($"[{this.Name}] has moved All-In for [{this.Chips}] chips.");
+
+            Board.ChipsInPot += this.Chips; ;            
+            this.ChipsBetThisRound += this.Chips;
+            this.Chips = 0;
+        }
+
+        internal void ShowCards()
+        {
+            PrintGameInformation();
+
+            Console.WriteLine($"[{this.Name}]'s cards are: [{this.CardOne}] [{this.CardTwo}]");
+            Console.WriteLine($"\npress any button to hide cards...");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
+        internal void DetermineChipsNeededToCall()
+        {
+            var Players = Board.GetPlayersInHand();
+
+            foreach (var player in Players)
+            {
+                if(player.ChipsBetThisRound > this.ChipsNeededToCall)
+                {
+                    this.ChipsNeededToCall = player.ChipsBetThisRound;
+                }
+            }
+        }
+
+        
 
 
 
@@ -119,7 +168,6 @@ namespace PokerApp
             var fullBoard = string.Join("", fullBoardList);            
 
             var fourOfAKindRegEx = new Regex(@"(\d{1}).*\1{1}.*\1{1}.*\1{1}");
-
 
             var matches = fourOfAKindRegEx.Matches(fullBoard);
 
@@ -158,7 +206,7 @@ namespace PokerApp
             return false;
         }
 
-        
+
         //This function requires much more work. Need to consider the different combinations of:
         //DONE: 2 three of a kinds (also, the matched three of a kind will need to be removed from the string and the reg ex search executed again. Otherwise, some instances of "2, three of a kinds" being present will go undetected
         //TODO: 1 three of a kind, and one pair
@@ -233,7 +281,7 @@ namespace PokerApp
 
             var matches = flushRegEx.Matches(fullBoard);
 
-            //If a match is found then need to remove all cards that arent in the matched suit to determine the kicker
+            //If a match is found then need to remove all cards that arent in the matched suit in order to determine the kicker
             if (matches.Count == 1)
             {                
                 this.BestHandType = 5;
@@ -252,19 +300,14 @@ namespace PokerApp
                 return true;
             }
 
-
-
             return false;
         }
 
 
-
-
         internal bool StraightFound()
         {
-            //var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
-            var fullBoardList = new List<string>() { "3C", "4C", "5S", "6H", "7H", "AD", "2H"};
-
+            var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
+            
             fullBoardList = Board.RemoveSuits(fullBoardList);
             var fullBoardListInt = Board.ReplaceFaceCardsWithInts(fullBoardList);
 
@@ -289,7 +332,7 @@ namespace PokerApp
 
                 if (matches2.Count > 0)
                 {
-                    this.BestKicker = Convert.ToInt32(matches2[0].ToString().Substring(4, 1));
+                    this.BestKicker = Convert.ToInt32(matches2[0].ToString().Substring(4, 1));                    
 
                     fullBoard = fullBoard.Replace(matches2[0].ToString().Substring(0, 1), ""); 
 
@@ -299,13 +342,12 @@ namespace PokerApp
                     {
                         this.BestKicker = Convert.ToInt32(matches3[0].ToString().Substring(4, 1));
                     }
-                }                
+                }
 
                 return true;
             }
 
             return false;
-
         }
 
 
@@ -314,7 +356,6 @@ namespace PokerApp
         internal bool ThreeOfAKindFound()
         {
             var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
-            //var fullBoardList = new List<string>() { "JC", "8H", "7C", "5C", "4S", "8H", "8H"};
 
             var fullBoard = string.Join("", fullBoardList);           
 
@@ -328,8 +369,6 @@ namespace PokerApp
 
                 this.HighestThreeOfAKindValue = Board.ReplaceFaceCardWithInts(matchedChar);                                
 
-                //DETERMINE BEST KICKER - Remove the matched char, remove suits, convert face cards into ints, then perform a simple search for highest value
-
                 fullBoardList.RemoveAll(item => item.Contains(matchedChar));
 
                 this.BestKicker = FindBestKicker(fullBoardList);                
@@ -340,28 +379,23 @@ namespace PokerApp
             return false;
         }
 
-        
-
 
         //Need to determine kicker for 2 pair
         internal bool TwoPairFound() 
         {
             var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
-            //var fullBoardList = new List<string>() { "QH", "JH", "JC", "5C", "10H", "AH", "4H" };
 
             var fullBoard = string.Join("", fullBoardList);
 
             //Im not sure if all 2 pair combinations can be done with a reg ex. I found it was easier to find one pair, then remove that from the search string and run the same reg ex again
             //This will match 2 pairs for "4H 4D 5H 5D", but not "4H 5H 4H 5H"
             var OnePairRegEx = new Regex(@"([^HDCS]{1}).*\1{1}"); 
-            var matches1 = OnePairRegEx.Matches(fullBoard);
-                        
+            var matches1 = OnePairRegEx.Matches(fullBoard);                        
 
             //Remove the char that has already been matched then perform the search again
             if (matches1.Count >= 1)
             {
-                var matchedChar = GetMatchedCharFrom(matches1);                
-
+                var matchedChar = GetMatchedCharFrom(matches1);
                 fullBoard = fullBoard.Replace(matchedChar, "");
 
                 var matches2 = OnePairRegEx.Matches(fullBoard);
@@ -389,7 +423,6 @@ namespace PokerApp
 
                     return true;
                 }
-
             }
 
             return false;
@@ -400,7 +433,6 @@ namespace PokerApp
         internal bool OnePairFound() //Player player
         {
            var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
-           //var fullBoardList = new List<string>() { "QH", "JH", "JC", "5C", "10H", "AH", "4H"};
 
             var fullBoard = string.Join("", fullBoardList);
            
@@ -412,22 +444,18 @@ namespace PokerApp
                 var matchedChar = GetMatchedCharFrom(matches);
 
                 this.HighestPair = Convert.ToInt32(Board.ReplaceFaceCardWithInts(matchedChar));
-                this.BestHandType = 1;
-
-
-                //DETERMINE TOP KICKER - Remove the matched char, remove suits, convert face cards into ints, then perform a simple search for highest value
+                this.BestHandType = 1;                
 
                 fullBoardList.RemoveAll(item => item.Contains(matchedChar));
-
                 this.BestKicker = FindBestKicker(fullBoardList);
 
                 return true; 
             }
 
             return false;
-
         }
 
+        //The matchedChar is always the first position in the string that is returned from var matches = someRegEx.Matches(string)
         private string GetMatchedCharFrom(MatchCollection match)
         {
             var matchedChar = match[0].ToString().Substring(0, 1);
@@ -440,6 +468,7 @@ namespace PokerApp
         internal void SetKicker()
         {
             var fullBoardList = new List<string>() { this.CardOne, this.CardTwo, Board.FlopSlot1, Board.FlopSlot2, Board.FlopSlot3, Board.TurnSlot, Board.RiverSlot };
+            
             fullBoardList = Board.RemoveSuits(fullBoardList);
             var fullBoardListInt = Board.ReplaceFaceCardsWithInts(fullBoardList);
 
@@ -458,7 +487,7 @@ namespace PokerApp
 
 
         //Starts comparing from the best possible hand, if match found then return as we dont care about the rest
-        internal int DetermineStrongestHandType() //Player player
+        internal int GetStrongestHandType() //Player player
         {
             ////if (player.RoyalFlushFound())      { return (int) Deck.EnumPokerHands.RoyalFlush; }
 
@@ -478,6 +507,7 @@ namespace PokerApp
 
             if (this.OnePairFound())        { return (int) Deck.EnumPokerHands.OnePair; }
 
+            //Otherwise, set the kicker (dont think I need to prefix with "this" in this situation, test it)
             this.SetKicker();  return (int) Deck.EnumPokerHands.HighCard;
         }
 
@@ -494,7 +524,6 @@ namespace PokerApp
             {
                 this.HighestPair = Board.ReplaceFaceCardWithInts(matchedCharOne);
             }
-
         }
 
         internal void DetermineBestHandFromBoardWith2Pairs(string matchedCharOne, string matchedCharTwo)
@@ -514,7 +543,7 @@ namespace PokerApp
 
         internal void DetermineBestHandFromBoardWith3Pairs(string matchedCharOne, string matchedCharTwo, string matchedCharThree)
         {
-            var highestChars = DetermineHighestCardFromThreeChoices(matchedCharOne, matchedCharTwo, matchedCharThree);
+            var highestChars = DetermineHighestCardsFromThreeChoices(matchedCharOne, matchedCharTwo, matchedCharThree);
 
             this.HighestPair = highestChars[0];
             this.SecondHighestPair = highestChars[1]; 
@@ -529,16 +558,15 @@ namespace PokerApp
             return matchedChars.Max();
         }
 
-        internal List<int> DetermineHighestCardFromThreeChoices(string matchedCharOne, string matchedCharTwo, string matchedCharThree)
+        internal List<int> DetermineHighestCardsFromThreeChoices(string matchedCharOne, string matchedCharTwo, string matchedCharThree)
         {
             matchedCharOne = matchedCharOne.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
             matchedCharTwo = matchedCharTwo.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
             matchedCharThree = matchedCharThree.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
-
-            var highestChars = new List<int>();
+            
             var matchedChars = new List<int>() { Convert.ToInt32(matchedCharOne), Convert.ToInt32(matchedCharTwo), Convert.ToInt32(matchedCharThree) };
-            
-            
+            var highestChars = new List<int>();
+
             highestChars.Add(matchedChars.Max());
             matchedChars.Remove(highestChars[0]);
 
@@ -575,7 +603,6 @@ namespace PokerApp
 
             return matchedChar;
         }
-
     }
 }
 

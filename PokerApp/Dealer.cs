@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using static PokerApp.App;
 
 namespace PokerApp
 {
     static class Dealer
     {
-        private static Player handWinner;
+        private static Player handWinner;        
 
         public static Player HandWinner { get { return handWinner; } set { handWinner = value; } }
 
@@ -14,12 +15,31 @@ namespace PokerApp
         {
             Deck.ShuffleDeck();
             Board.HandIsLive = true;
+            Board.FlopSlot1 = "";
+            Board.FlopSlot2 = "";
+            Board.FlopSlot3 = "";
+            Board.TurnSlot = "";
+            Board.RiverSlot = "";
+            Board.CurrentPhase = "PreFlop";
 
-            foreach (var player in App.Players)
+            foreach (var player in Players)
             {
                 player.HasCards = true;
                 DealCardsToPlayer(player);
             }
+
+            foreach (var player in Players)
+            {                
+                Console.WriteLine($"Press any key to see [{player.Name}]'s cards.");
+                Console.ReadKey();
+                Console.Clear();
+                Console.WriteLine($"[{player.Name}]'s cards = [{player.CardOne}] [{player.CardTwo}]");
+                Console.WriteLine($"");
+                Console.WriteLine($"Press any key to hide cards.");
+                Console.ReadKey();
+                Console.Clear();
+            }
+
         }
 
         internal static void DealCardsToPlayer(Player player)
@@ -27,50 +47,48 @@ namespace PokerApp
             player.CardOne = Deck.LiveDeck[0];
             player.CardTwo = Deck.LiveDeck[1];
 
-            Console.WriteLine($"{player.Name}'s hand = [{player.CardOne}] + [{player.CardTwo}]");
+            //Console.WriteLine($"{player.Name}'s hand = [{player.CardOne}] + [{player.CardTwo}]");
 
             Deck.LiveDeck.RemoveRange(0, 2);
         }
 
         internal static void DealFlop()
         {
-            Board.flopSlot1 = Deck.LiveDeck[0];
-            Board.flopSlot2 = Deck.LiveDeck[1];
-            Board.flopSlot3 = Deck.LiveDeck[2];
+            Board.FlopSlot1 = Deck.LiveDeck[0];
+            Board.FlopSlot2 = Deck.LiveDeck[1];
+            Board.FlopSlot3 = Deck.LiveDeck[2];
+            Board.CurrentPhase = "Flop";
 
-            Deck.LiveDeck.RemoveRange(0, 3);
+            Deck.LiveDeck.RemoveRange(0, 3);            
 
-            Console.WriteLine($"------------------------------------------------------");
-            Console.WriteLine($"Round = [Flop] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}");
+            PrintGameInformation();
+
+            Console.WriteLine($"Round = [Flop] - The Board = [{Board.FlopSlot1}], [{Board.FlopSlot2}], [{Board.FlopSlot3}]");
         }
 
         internal static void DealTurn()
         {
             Board.TurnSlot = Deck.LiveDeck[0];
+            Board.CurrentPhase = "Turn";
 
-            Deck.LiveDeck.RemoveAt(0);
+            Deck.LiveDeck.RemoveAt(0);            
 
-            Console.WriteLine($"------------------------------------------------------");
-            Console.WriteLine($"Round = [Turn] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}, {Board.TurnSlot}");
+            PrintGameInformation();
+
+            Console.WriteLine($"Round = [Turn] - The Board = [{Board.FlopSlot1}], [{Board.FlopSlot2}], [{Board.FlopSlot3}], [{Board.TurnSlot}]");
         }
 
         internal static void DealRiver()
         {
             Board.RiverSlot = Deck.LiveDeck[0];
+            Board.CurrentPhase = "River";
 
-            Deck.LiveDeck.RemoveAt(0);
+            Deck.LiveDeck.RemoveAt(0);            
 
-            Console.WriteLine($"------------------------------------------------------");
-            Console.WriteLine($"Round = [River] - The Board = {Board.flopSlot1}, {Board.flopSlot2}, {Board.flopSlot3}, {Board.TurnSlot}, {Board.RiverSlot}");
+            PrintGameInformation();
+
+            Console.WriteLine($"Round = [River] - The Board = [{Board.FlopSlot1}], [{Board.FlopSlot2}], [{Board.FlopSlot3}], [{Board.TurnSlot}], [{Board.RiverSlot}]");
         }
-
-
-
-
-
-
-
-
 
 
         //Simple and effective way to tell if bets are needing dealt with by checking if each player with cards has bet the same amount of chips this round
@@ -92,11 +110,11 @@ namespace PokerApp
                         //This is needed in case the player is all in. In this scenario they would of course not have bet the same amount of chips as the player with the bigger stack
                         if (PlayersInTheHand[i].ChipsBetThisRound > PlayersInTheHand[i - 1].ChipsBetThisRound)
                         {
-                            if (PlayersInTheHand[i].AllIn == true) { return false; }
+                            if (PlayersInTheHand[i].IsAllIn == true) { return false; }
                         }
                         else
                         {
-                            if (PlayersInTheHand[i - 1].AllIn == true) { return false; }
+                            if (PlayersInTheHand[i - 1].IsAllIn == true) { return false; }
                         }
 
                         if (PlayersInTheHand[i].Chips > 0 && PlayersInTheHand[i - 1].Chips > 0)
@@ -114,18 +132,18 @@ namespace PokerApp
         internal static void CheckForGameWinner()
         {
 
-            //this current set up means only one hand is played
-            App.GameOver = true;
-            return;
+            ////this current set up means only one hand is played
+            //GameOver = true;
+            //return;
 
 
 
-
-            foreach (Player player in App.Players)
+            foreach (Player player in Players)
             {
                 if (player.Chips == 3000) //replace with TotalAmountOfChipsInPlay
                 {
-                    App.GameOver = true;
+                    GameOver = true;
+                    Console.WriteLine($"GAME OVER");
                 }
             }
         }
@@ -141,7 +159,7 @@ namespace PokerApp
             foreach (var player in PlayersInHand)
             {
                 //This only returns a general assessment, as in, high card equals 0, three of a kind equals 3.
-                player.BestHandType = player.DetermineStrongestHandType();
+                player.BestHandType = player.GetStrongestHandType();
             }
 
             
