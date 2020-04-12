@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 namespace PokerApp
 {
     class App
@@ -26,23 +27,22 @@ namespace PokerApp
 
             Players = new List<Player>() { Ford, Tyrion, Sherlock };
 
-
             //Ford.HasCards = true;
             //Sherlock.HasCards = true;
             //Tyrion.HasCards = true;
 
-            //Ford.CardOne = "9H";
-            //Ford.CardTwo = "9D";
+            //Ford.CardOne = "9C";
+            //Ford.CardTwo = "7C";
 
-            //Sherlock.CardOne = "AH";
-            //Sherlock.CardTwo = "7S";
+            //Sherlock.CardOne = "9H";
+            //Sherlock.CardTwo = "8S";
 
-            //Tyrion.CardOne = "9S";
-            //Tyrion.CardTwo = "9C";
+            //Tyrion.CardOne = "6S";
+            //Tyrion.CardTwo = "2C";
 
-            //Board.FlopSlot1 = "6C";
+            //Board.FlopSlot1 = "9H";
             //Board.FlopSlot2 = "AS";
-            //Board.FlopSlot3 = "3C";
+            //Board.FlopSlot3 = "KC";
             //Board.TurnSlot = "4C";
             //Board.RiverSlot = "5C";
 
@@ -66,24 +66,24 @@ namespace PokerApp
         {
             //TakeTheBlinds();            
 
-            PlayRound("PreFlop");
+            PlayPhase("PreFlop");
 
             if (Board.HandIsLive)
             {
                 Dealer.DealFlop();
-                PlayRound("Flop");
+                PlayPhase("Flop");
             }
 
             if (Board.HandIsLive)
             {
                 Dealer.DealTurn();
-                PlayRound("Turn");
+                PlayPhase("Turn");
             }
 
             if (Board.HandIsLive)
             {
                 Dealer.DealRiver();
-                PlayRound("River");
+                PlayPhase("River");
             }
 
             DeclareWinnerOfHand();
@@ -98,11 +98,13 @@ namespace PokerApp
             Board.ChipsInPot = 0;
         }
 
-        public static void PlayRound(string round) //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
+        public static void PlayPhase(string round) //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
         {
-            Tyrion.ChipsBetThisRound = 0;
-            Ford.ChipsBetThisRound = 0;
-            Sherlock.ChipsBetThisRound = 0;
+            foreach(var player in Players)
+            {
+                player.ChipsBetThisRound = 0;
+                player.ChipsNeededToCall = 0;
+            }
 
             while (true)
             {
@@ -110,63 +112,63 @@ namespace PokerApp
                 for (var i = 0; i < Players.Count; i++)
                 {
                     var PlayersInHand = Board.GetPlayersInHand();
+                                                                                            //Dealer.IsActionOver() does what i want but i think the only problem is telling the difference between the start of a hand and everyone checking
+                    if (Players[i].HasCards && Players[i].Chips > 0 && PlayersInHand.Count > 1 ) 
+                    {                      
 
-                    if (Players[i].HasCards && Players[i].Chips > 0 && PlayersInHand.Count > 1)
-                    {
-                        PrintGameInformation();                        
+                        Output.PrintGameInformation();
 
-                        Console.WriteLine($"\n{Players[i].Name}'s Turn");
+                        Output.PrintPlayersTurnIsReady(Players[i]);
 
-                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine
-                        var output = Board.GetMoveOptions();
-                        Console.WriteLine(output);
+                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine. - Actually, I might want to include them in player.ChipsBetThisRound. Now I think about it they will need to be taken into consideration 
+
+                        var moveOptions = Players[i].GetMoveOptions();
+
+                        Output.PrintPlayersMoveOptions(moveOptions);
 
                         //Need to add some instructions on format of user input and a help menu at some point
                         var input = Console.ReadLine();
 
                         Players[i].LastMove = Utils.GetUserInputtedCommand(input);
-                        string value = Utils.GetUserInputtedValue(input);
+                        var value = Utils.GetUserInputtedValue(input);
 
-                        //if(IllegalMoveUsed(output, input)) { i -= 1; }
-                        //else
-                        //{
+                        if (Players[i].IsIllegalMoveUsed(moveOptions, value)) { i -= 1; }
+                        else
+                        {
                             switch (Players[i].LastMove)
                             {
-                                case "Fold":
-                                case "F":
+                                case "fold":
+                                case "f":
                                     Players[i].Fold();
                                     break;
 
-                                case "Check":
+                                case "check":
                                 case "c":
                                     Players[i].Check();
                                     break;
 
-                                case "Call":
-                                case "CA":
+                                case "call":
+                                case "e":
                                     Players[i].Call();
                                     break;
 
-                                case "Bet":
-                                case "B":
+                                case "bet":
+                                case "b":
                                     Players[i].Bet(Convert.ToInt32(value));
                                     break;
 
-                                case "Raise":
-                                case "R":
+                                case "raise":
+                                case "r":
                                     Players[i].Raise(Convert.ToInt32(value));
                                     break;
 
-                                case "All-In":
-                                case "AllIn":
-                                case "All In":
-                                case "All":
+                                case "all":
                                     Players[i].AllIn();
                                     break;
 
-                                case "Show":
-                                case "S":
-                                    Players[i].ShowCards();
+                                case "show":
+                                case "s":
+                                    Players[i].RevealCards();
                                     i -= 1;
                                     break;
 
@@ -176,12 +178,11 @@ namespace PokerApp
                                     break;
 
                             }
-
-
-                        //}
-
-                        
+                        }
                     }
+
+                    //If betting for the round is over then break. It is similiar to Dealer.IsActionOver() but they serve distinct purposes. For example, within IsActionOver(), if all players have bet 0 chips this round then that is fine, it means everyone has checked. However, if I tried to run the same code inside the for loop, the code would break out the for loop prematurely if the first player in the loop checks. IsActionOver() handles stuff to do with All-ins and other conditions but PlayersHaveBetEqualAmounts() can be simplier, since for example, if the player is all-in then they wont be able to read the code inside the for loop, then once the loop, IsActionOver() can be executed
+                    if (Dealer.PlayersHaveBetEqualAmounts()) { break; }
                 }
 
                 //Checks first if only one person has cards left THEN the betting for the round is done - both are reasons to back out of the while loop (the current round, e.g the flop )
@@ -189,77 +190,23 @@ namespace PokerApp
             }
         }
 
-
-
         private static void DeclareWinnerOfHand()
         {
             var PlayersInHand = Board.GetPlayersInHand();
 
             if (PlayersInHand.Count < 2)
-            {
-                Console.Clear();
-                Console.WriteLine($"\nThe Winner of the hand is {PlayersInHand[0].Name}.");
+            {                
                 Dealer.HandWinner = PlayersInHand[0];
+                Output.PrintHandResult();
             }
             else
             {
-                Dealer.DeterminePlayerWithBestHand(PlayersInHand);
-
-                Console.Clear();
-                Console.WriteLine($"The Winner of the hand is {Dealer.HandWinner.Name}. He has a hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}. With the kicker of: {Dealer.HandWinner.BestKicker} (Kickers are not complete)" );
-                Console.WriteLine("");
-                Console.WriteLine($"The Board = [{Board.FlopSlot1}], [{Board.FlopSlot2}], [{Board.FlopSlot3}], [{Board.TurnSlot}], [{Board.RiverSlot}]");
-                Console.WriteLine("");
-                Console.WriteLine($"{Ford.Name}'s cards were: [{Ford.CardOne}] [{Ford.CardTwo}] ");
-                Console.WriteLine($"{Tyrion.Name}'s cards were: [{Tyrion.CardOne}] [{Tyrion.CardTwo}] ");
-                Console.WriteLine($"{Sherlock.Name}'s cards were: [{Sherlock.CardOne}] [{Sherlock.CardTwo}] ");
-
+                Dealer.DeterminePlayerWithBestHand();
+                Output.PrintHandResult();
             }
 
-            Console.WriteLine($"\nPress any button to continue to next hand.");
-            Console.ReadKey();
-            Console.Clear();
-
-        }
-
-
-        internal static void PrintGameInformation()
-        {
-            Console.Clear();
-            Console.WriteLine($"-------------------------------");
-            Console.WriteLine($"[{Board.CurrentPhase}]");
-            Console.WriteLine($"-------------------------------");
-            Console.WriteLine($"\nChip Stacks:\n");
-
-            foreach (var player in Players)
-            {
-                Console.WriteLine($"[{player.Name}]'s chips: [{player.Chips}]");
-            }
-
-            Console.WriteLine($"\nHas Cards:\n");
-
-            foreach (var player in Players)
-            {
-                Console.WriteLine($"[{player.Name}]: [{player.HasCards}]");
-            }
-
-            Console.WriteLine($"\nPot Value = [{Board.ChipsInPot}]\n");
-            Console.WriteLine($"-------------------------------");            
-
-            var FlopOutput = $"The Board = [{ Board.FlopSlot1}] [{Board.FlopSlot2}] [{Board.FlopSlot3}]";
-            var TurnOutput = $" [{Board.TurnSlot}]";
-            var RiverOutput = $" [{Board.RiverSlot}]";
-            var TheBoard = ""; 
-
-            if (!string.IsNullOrWhiteSpace(Board.FlopSlot1)) { TheBoard += FlopOutput; }
-            if (!string.IsNullOrWhiteSpace(Board.TurnSlot)) { TheBoard += TurnOutput; }
-            if (!string.IsNullOrWhiteSpace(Board.RiverSlot)) { TheBoard += RiverOutput; }
-
-            if (!string.IsNullOrWhiteSpace(TheBoard)) 
-            {                
-                Console.WriteLine($"{TheBoard}");
-                Console.WriteLine($"-------------------------------");
-            }
-        }
+            Console.WriteLine($"\nPress any button to continue to next hand...");
+            Console.ReadKey();            
+        }        
     }
 }

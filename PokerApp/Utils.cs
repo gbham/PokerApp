@@ -35,10 +35,10 @@ namespace PokerApp
                 }
             }
 
-            return action;
+            return action.ToLower();
         }
 
-        internal static string GetUserInputtedValue(string input)
+        internal static int GetUserInputtedValue(string input)
         {
             var value = "";
 
@@ -51,7 +51,9 @@ namespace PokerApp
                 }
             }
 
-            return value;
+            if (string.IsNullOrWhiteSpace(value)) { return 0; }
+
+            return Convert.ToInt32(value);
         }
     }
 }

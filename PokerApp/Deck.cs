@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PokerApp
 {   
@@ -32,6 +33,36 @@ namespace PokerApp
         {
             LiveDeck = SortedDeck;            
             LiveDeck.Shuffle();   
+        }
+
+        //Replacing all suits and face cards so calculations can be done against ints
+        internal static List<int> ReplaceFaceCardsWithInts(List<string> fullBoardList)
+        {
+            for (var i = 0; i < fullBoardList.Count; i++)
+            {
+                fullBoardList[i] = fullBoardList[i].Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
+            }
+
+            var onlyNumbersList = fullBoardList.Select(int.Parse).ToList();
+
+            return onlyNumbersList;
+        }
+
+        internal static int ReplaceFaceCardWithInts(string card)
+        {
+            card = card.Replace("A", "14").Replace("J", "11").Replace("Q", "12").Replace("K", "13");
+
+            return Convert.ToInt32(card);
+        }
+
+        internal static List<string> RemoveSuits(List<string> fullBoardList)
+        {
+            for (var i = 0; i < fullBoardList.Count; i++)
+            {
+                fullBoardList[i] = fullBoardList[i].Replace("H", "").Replace("D", "").Replace("S", "").Replace("C", "");
+            }
+
+            return fullBoardList;
         }
     }
 }
