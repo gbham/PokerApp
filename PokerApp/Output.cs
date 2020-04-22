@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Reflection.Metadata.Ecma335;
 using static PokerApp.App;
 
 namespace PokerApp
@@ -66,6 +63,18 @@ namespace PokerApp
             Console.WriteLine($"\n{player.Name}'s Turn");
         }
 
+        internal static void PrintNewlyDealtCards(Player player)
+        {
+            Console.Clear();
+            Console.WriteLine($"Press any key to see [{player.Name}]'s cards.");
+            Console.ReadKey();
+            Console.Clear();
+            Console.WriteLine($"[{player.Name}]'s cards = [{player.CardOne}] [{player.CardTwo}]");
+            Console.WriteLine($"");
+            Console.WriteLine($"Press any key to hide cards.");
+            Console.ReadKey();
+        }
+
         internal static void PrintPlayersMoveOptions(string MoveOptions)
         {
             Console.WriteLine($"{MoveOptions}\n");
@@ -76,7 +85,23 @@ namespace PokerApp
             var PlayersInHand = Board.GetPlayersInHand();
 
             Console.Clear();
-            Console.WriteLine($"\nThe Winner of the hand is {Dealer.HandWinner.Name}. He has a hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}. With the kicker of: {Dealer.HandWinner.BestKicker} (Kickers are not complete)\n");
+            //sometimes I use player.BestKicker and sometimes use player.ListOfKickers depending on the hand type, need to account for this when printing out the kicker            
+
+            if (Dealer.IsSplitPot)
+            {
+                Console.WriteLine($"\nThe winnings of the pot are split between {Dealer.SplitPotPlayers.Count} players: \n");
+                foreach (var player in Dealer.SplitPotPlayers)
+                {
+                    Console.WriteLine($"[{player.Name}]");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"\nThe Winner of the hand is {Dealer.HandWinner.Name}.");
+            }
+
+            Console.WriteLine($"\nThey have the hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}. With the kicker of: {Dealer.HandWinner.ListOfKickers[0]}\n");
+
             Console.WriteLine("");
 
             PrintBoard();  
@@ -87,6 +112,18 @@ namespace PokerApp
             {
                 Console.WriteLine($"{player.Name}'s cards were: [{player.CardOne}] [{player.CardTwo}] ");
             }  
+        }
+
+        internal static void PrintCardInformation(Player player)
+        {
+            Console.WriteLine($"[{player.Name}]'s cards are: [{player.CardOne}] [{player.CardTwo}]");
+            Console.WriteLine($"\npress any button to hide cards...");
+        }
+
+        internal static void PrintGameOver()
+        {
+            Console.Clear();
+            Console.WriteLine($"GAME OVER");
         }
     }
 }

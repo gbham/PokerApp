@@ -18,21 +18,17 @@ namespace PokerApp
         private static string turnSlot;
         private static string riverSlot;
         private static bool handIsLive;
-        private static string currentPhase = "";
-        
+        private static string currentPhase = "";       
 
         public static int TotalAmountOfChipsInPlay { get { return totalAmountOfChipsInPlay; } set { totalAmountOfChipsInPlay = value; } }
         public static int ChipsInPot { get { return chipsInPot; } set { chipsInPot = value; } }
-
         public static string FlopSlot1 { get { return flopSlot1; } set { flopSlot1 = value; } }
         public static string FlopSlot2 { get { return flopSlot2; } set { flopSlot2 = value; } }
         public static string FlopSlot3 { get { return flopSlot3; } set { flopSlot3 = value; } }
         public static string TurnSlot { get { return turnSlot; }   set { turnSlot = value; } }
         public static string RiverSlot { get { return riverSlot; } set { riverSlot = value; } }
         public static bool HandIsLive { get { return handIsLive; } set { handIsLive = value; } }
-        public static string CurrentPhase { get { return currentPhase; } set { currentPhase = value; } }
-
-        
+        public static string CurrentPhase { get { return currentPhase; } set { currentPhase = value; } }        
 
         internal static List<Player> GetPlayersInHand()
         {
@@ -49,17 +45,23 @@ namespace PokerApp
             return PlayersInTheHand;
         }
 
-        internal static bool IsHandLive()
+        internal static void ResetPlayerValues()
         {
-            var numberOfPlayersInHand = GetPlayersInHand().Count;
-
-            if(numberOfPlayersInHand < 2)
+            foreach(var player in Players)
             {
-                return false;
+                player.IsAllIn = false;
+                player.ListOfKickers.Clear();
+                player.RoyalStraight = false;
             }
-
-            return true;
         }
-        
+
+        internal static void ResetBoardValues()
+        {
+            Board.FlopSlot1 = "";
+            Board.FlopSlot2 = "";
+            Board.FlopSlot3 = "";
+            Board.TurnSlot = "";
+            Board.RiverSlot = "";
+        }
     }
 }

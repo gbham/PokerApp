@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-
 namespace PokerApp
 {
     class App
@@ -17,37 +16,38 @@ namespace PokerApp
 
         public static void Main()
         {
-            Tyrion = new Player();
-            Ford = new Player();
-            Sherlock = new Player();
+            Ford = new Player("Ford");
+            Tyrion = new Player("Tyrion");
+            Sherlock = new Player("Sherlock");
 
-            Tyrion.Name = "Tyrion";
-            Ford.Name = "Ford";
-            Sherlock.Name = "Sherlock";
+            Players = new List<Player>() { Ford, Tyrion, Sherlock }; // 
 
-            Players = new List<Player>() { Ford, Tyrion, Sherlock };
 
             //Ford.HasCards = true;
-            //Sherlock.HasCards = true;
             //Tyrion.HasCards = true;
+            //Sherlock.HasCards = true;
 
-            //Ford.CardOne = "9C";
-            //Ford.CardTwo = "7C";
 
-            //Sherlock.CardOne = "9H";
-            //Sherlock.CardTwo = "8S";
+            //Ford.CardOne = "JC";
+            //Ford.CardTwo = "2D";
 
-            //Tyrion.CardOne = "6S";
-            //Tyrion.CardTwo = "2C";
+            //Tyrion.CardOne = "JC";
+            //Tyrion.CardTwo = "2D";
 
-            //Board.FlopSlot1 = "9H";
-            //Board.FlopSlot2 = "AS";
-            //Board.FlopSlot3 = "KC";
-            //Board.TurnSlot = "4C";
-            //Board.RiverSlot = "5C";
+            //Sherlock.CardOne = "6D";
+            //Sherlock.CardTwo = "2H";
 
-            //DeclareWinnerOfHand();
 
+            //Board.FlopSlot1 = "9C";
+            //Board.FlopSlot2 = "10C";
+            //Board.FlopSlot3 = "JC";
+            //Board.TurnSlot = "9C";
+            //Board.RiverSlot = "10C";
+
+            //DetermineWinnerOfHand();
+
+
+            //Dealer.GetNumberOfPlayersAndNames();
 
             while (!GameOver)
             {
@@ -55,11 +55,9 @@ namespace PokerApp
 
                 PlayHand();
 
-                //At the moment, this is set up to win the first time it is ran
                 Dealer.CheckForGameWinner();
             }
         }
-
 
 
         public static void PlayHand()
@@ -86,24 +84,18 @@ namespace PokerApp
                 PlayPhase("River");
             }
 
-            DeclareWinnerOfHand();
-
-            AssignChipsToWinnerOfHand();
+            DetermineWinnerOfHand();
 
         }
 
-        private static void AssignChipsToWinnerOfHand()
-        {
-            Dealer.HandWinner.Chips += Board.ChipsInPot;
-            Board.ChipsInPot = 0;
-        }
+        
 
         public static void PlayPhase(string round) //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
         {
             foreach(var player in Players)
             {
                 player.ChipsBetThisRound = 0;
-                player.ChipsNeededToCall = 0;
+                player.ChipsNeededToCall = 0; //not sure that ChipsNeededToCall needs to be reset here anymore. some changes may have made this redundant.
             }
 
             while (true)
@@ -120,7 +112,7 @@ namespace PokerApp
 
                         Output.PrintPlayersTurnIsReady(Players[i]);
 
-                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine. - Actually, I might want to include them in player.ChipsBetThisRound. Now I think about it they will need to be taken into consideration 
+                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine. - Actually, I might want to include them in player.ChipsBetThisRound. Now I think about it, they will need to be taken into consideration 
 
                         var moveOptions = Players[i].GetMoveOptions();
 
@@ -142,23 +134,19 @@ namespace PokerApp
                                     Players[i].Fold();
                                     break;
 
-                                case "check":
-                                case "c":
+                                case "check":                                
                                     Players[i].Check();
                                     break;
 
-                                case "call":
-                                case "e":
+                                case "call":                                
                                     Players[i].Call();
                                     break;
 
-                                case "bet":
-                                case "b":
+                                case "bet":                                
                                     Players[i].Bet(Convert.ToInt32(value));
                                     break;
 
-                                case "raise":
-                                case "r":
+                                case "raise":                                
                                     Players[i].Raise(Convert.ToInt32(value));
                                     break;
 
@@ -166,8 +154,7 @@ namespace PokerApp
                                     Players[i].AllIn();
                                     break;
 
-                                case "show":
-                                case "s":
+                                case "show":                               
                                     Players[i].RevealCards();
                                     i -= 1;
                                     break;
@@ -176,7 +163,6 @@ namespace PokerApp
                                 default:
                                     i -= 1;
                                     break;
-
                             }
                         }
                     }
@@ -190,7 +176,7 @@ namespace PokerApp
             }
         }
 
-        private static void DeclareWinnerOfHand()
+        private static void DetermineWinnerOfHand()
         {
             var PlayersInHand = Board.GetPlayersInHand();
 
@@ -205,8 +191,27 @@ namespace PokerApp
                 Output.PrintHandResult();
             }
 
+            AssignChipsToWinnerOfHand();
+
             Console.WriteLine($"\nPress any button to continue to next hand...");
             Console.ReadKey();            
-        }        
+        }
+
+        private static void AssignChipsToWinnerOfHand()
+        {
+            if(!Dealer.IsSplitPot)
+            {
+                foreach(var player in Dealer.SplitPotPlayers)
+                {
+                    player.Chips += Board.ChipsInPot / Dealer.SplitPotPlayers.Count;
+                }
+            }
+            else
+            {
+                Dealer.HandWinner.Chips += Board.ChipsInPot;
+            }
+           
+            Board.ChipsInPot = 0;
+        }
     }
 }

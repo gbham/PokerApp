@@ -1,35 +1,35 @@
-﻿-Need to consider the blinds
--Also need to consider the person that starts the hand changes each time. First thoughts are to have a list of the players that changes after each hand played. I think just putting the player at position 1 in the list to the end should solve the issue.
--Need to handle min raises
--Need to add some instructions on format of user input and a help menu at some point
--If the money needed to call puts the player all in, then there shouldnt be an option to "Raise"
--Deal with ChipsNeededToCall
--******Make a structured list of tasks and features
+﻿
+
+
 -care with the difference between the hand ending due to someone folding and due to the hand ending cause someone is all in. I might treat some variables in too much of a general way
 -Need to account for someone being all in on the river and winning, but they cant get all the chips since they were short stack, I then need to assign those chips to the 2nd best hand and I suppose even one more time in a very rare scenario, I might be able to loop whatever process I create until the pot is "cleared"
--Care with how I determine kickers, if it is a straight/flush then I have no choice but to choose one of those 5 cards. With most other hands I can use any in the 7 availiable
--the ability to muck or show hands
 -ensure I have functions in the correct class, there can be some ambiguity with some functions that could belong to both Dealer/Board and maybe player. Keep these in mind and try find ways to seperate the functions into clearer categories 
--too much hassle to check if the regEx can return 2 matches on its own, since you then to remove the first match and run the regEx again anyway.
--For some functions, determing the kicker can be more alike that initially thought. If I am in the scenario where I know exactly what cards I need to find the kicker from, then the process can be pretty similar.
--ideas for custom UI default "layer": 5 show cards, chip counts, players in the hand. See what can be done in terms of a makeshift table being created in CLI
+-too much hassle to check if the regEx can return 2 matches on its own, since you then need to remove the first match and run the regEx anyway since 2 pairs wont be found in every scenario
 -Error with DetermineHighestCardFromTwoChoices()
--At the moment if there is only one kicker, specifically, the best kicker outside the "hand" (e.g Pair). Winners will be awarded incorrectly in rare situations until more kickers added. It probs wouldnt be too hard to scale up how some of the kickers are determined. If I have a list of only cards I need to decide kickers from, then instead of just assigning the highest kicker, I can create a new list, add the highest kicker, remove it from the original list and perform the search again for the next highest kicker, rinse and repeat
--Need function at the start to enter how many players will be playing and to assign names. Doesnt seem like it would be difficult. 
 -make sure everything isnt case sensative or convert all user input to lowercase
--Have to check if the player has the amount of chips avaiable that they acre trying to bet  
 -need to handle the situation where a player can only raise if they raise at least a certain amount, that amount must be greater than the value of the top bet this round by another player plus the min raise value
--if the formatting of the "ui" gets tricky with trying to display the last move made then I could just create another property that saves the last move each player made so I can display that at any time and not have to worry about the timing of other functions and where my Console.Clear()'s are placed
--maybe create tab autocomplete functionality or just the ability to tab through the options right off the bat
--at the moment there is no stopping the user from making any move at any time. What I mean is some moves are illegal in certain situations
--no time to check but noticed a time when All-in was being showing incorrectly, (guy with 1500 chips showsed "All-In" against 2 players with 0)
--if player has no chips left then i need to not show their chip count, or at least make sure the HasCards property is updated to false, maybe just remove them from Players[] but not sure what indirect issues that could cause. The player with no chips would be ignored during the turns anyway since they have no chips. Must ensure HasCards variable is changed tho as that is used to determine who can win a hand I believe
--need to have a chipBetThisRound in the print game information function
 -if i really want to show this - "Console.WriteLine($"[{this.Name}] has placed a bet of [{value}] chips.");" then I could just do another Console.ReadKey() after it so the user needs to hit a key before the next player will be presented with their move options
--phases, stage, round, not sure what I like best, dont mix and match
--Need to ensure that a raise value is valid, it cannot enter the Raise() function unless the raise amount is more than what has already been bet by another player
--eventually stop players from folding if the option to check is there
+-phases, stage, round, not sure what I like best, dont mix and match as it will just lead to unnecessary confussion
+-stop presenting players with the option to fold if the ability to check is legal
 -the player class is a bit of a shit show, need to better sort/seperate the functions within there
--*At the moment kickers are being assigned in specific functions for hand types. In time I could make it a global function if I just created a list in each specific hand type function of all the cards that can be considered for kicker. If it was a pair for example, then the player would have 5 cards to pick the kicker from, if it was 3 of a kind, then the player would have 4 cards to pick the kicker from. I need to create a list of "viable" cards then run them through a general function. To determine the best kicker I could even just sort the lists and compare the lists between players as a whole, loop through it one at a time till one position has a greater value than the other player (obv need to pad some positions with 0 for hands where only 4 cards are availiable)
-- DetermineBestOnePair(List<Player> Players)- I SHOULD JUST ADD ALL THE PAIRS TO A LIST AS I MATCH THEM, THEN I CAN JUST SORT THE LIST AND DETERMINE THE BEST PAIR EASY WITHOUT COMPARISON
+-*At the moment kickers are being assigned in specific functions for hand types. In time I could make it a global function if I just created a list in each specific hand type function of all the cards that can be considered for kicker. In the end though im not sure if this would be worth it. 
 -I do a lot of similiar stuff with "potentialWinners" for both hand type and kicker, could probably extract some of this functionality into common functions
+-still a bit to do for the fullhouse function but no work on kickers at all.
+-care with properties like BestThreeOfAKind and so on. I havent run into any problems as of yet but I guess there could be scenarios where I am not resetting all these variables properly and the previous hand data might persist to the next
+-maybe look to combine the Board/Deck class if possible, both dont have very much within. More important problem is sorting the player class
+-keep in mind when detmerning split pot from kickers that only 5 cards can be used. Im if the situation is handled where illegal cards are being used in the comparison, for example, if two players share the same pair and the same 3 next highest cards then it doesnt matter what the other 2 cards are that the player can try make his best hand with, it should be a split pot in that situation to I have to ensure that the final 2 cards are not compared in that situation. I dont think it should be hard if it isnt handled already since each hand type has a specifc function to check for its existence
+-i think there are still a few places where I am adding items that match to a list, then at the end going through that list and figuring out the desired values in a long roundabout way. use something like this:  "SplitPotPlayers.RemoveAll(item => item.ListOfKickers[0] < HandWinner.ListOfKickers[0]);""
+-not sure if i already have a note for it but need to ensure that Player.ListOfKickers only contains the kickers that are to be compared, not any extra, for example, for 2 pair, I should remove all kickers but the highest value, as that is the only value that matters, if that value equals the same as another player with the same 2 pair then there should be a split pot
+-have some code that checks the user has not inputted 2 move options (like check and bet, or call and raise in the same move, not sure what would actually happen in this scenario).
+-Split pot feature is basic. It doesnt determine if one player should get a bigger proportion of the winnings, at the moment it just splits the pot equally.
+
+Desired Features:
+-Blinds
+-Muck or show hands									(thought it might be hard at first but really the only condtion I care about when it comes down to whether to provide the player the option to much or show is when all other players fold, otherwise there is no option whether to show or fold)
+-Dealer chip, rotating who is dealt cards first		(First thoughts are to have a list of the players that changes after each hand played. I think just putting the player at position 1 in the list to the end should solve the issue.)
+-Min raises
+-User input format/help menu with example input
+-Split pot
+-Tab autocomplete user options/rotate through them
+-Add chips
+-Highlight when showing the winner if the hand, what cards were used to create the best hand from the 7 availiable
