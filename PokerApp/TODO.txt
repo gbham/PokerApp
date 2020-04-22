@@ -22,6 +22,9 @@
 -not sure if i already have a note for it but need to ensure that Player.ListOfKickers only contains the kickers that are to be compared, not any extra, for example, for 2 pair, I should remove all kickers but the highest value, as that is the only value that matters, if that value equals the same as another player with the same 2 pair then there should be a split pot
 -have some code that checks the user has not inputted 2 move options (like check and bet, or call and raise in the same move, not sure what would actually happen in this scenario).
 -Split pot feature is basic. It doesnt determine if one player should get a bigger proportion of the winnings, at the moment it just splits the pot equally.
+-Maybe worth making the distinction or highlight the use of the word "Kickers", or "player.ListOfKickers". For a pair, this property refers to the 3 next highest cards outside the pair. For a Straight/Flush, this property refers to the highest value cards of that hand type, as the hand type is made up of 5 cards. Compared to a pair that only requires 2 cards.
+
+
 
 Desired Features:
 -Blinds

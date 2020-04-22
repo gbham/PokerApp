@@ -167,11 +167,11 @@ namespace PokerApp
                         }
                     }
 
-                    //If betting for the round is over then break. It is similiar to Dealer.IsActionOver() but they serve distinct purposes. For example, within IsActionOver(), if all players have bet 0 chips this round then that is fine, it means everyone has checked. However, if I tried to run the same code inside the for loop, the code would break out the for loop prematurely if the first player in the loop checks. IsActionOver() handles stuff to do with All-ins and other conditions but PlayersHaveBetEqualAmounts() can be simplier, since for example, if the player is all-in then they wont be able to read the code inside the for loop, then once the loop, IsActionOver() can be executed
+                    //If betting for the round is over then break. It is similiar to Dealer.IsActionOver() but they serve distinct purposes. For example, within IsActionOver(), if all players have bet 0 chips this round then that is fine, it means everyone has checked. However, if I tried to run the same code inside the for loop, the code would break out the for loop prematurely if the first player in the loop checks. IsActionOver() handles stuff to do with All-ins and other conditions but PlayersHaveBetEqualAmounts() can be simplier, since for example, if the player is all-in then they wont be able to read the code inside the for loop, then once the for loop is over, IsActionOver() can be executed
                     if (Dealer.PlayersHaveBetEqualAmounts()) { break; }
                 }
 
-                //Checks first if only one person has cards left THEN the betting for the round is done - both are reasons to back out of the while loop (the current round, e.g the flop )
+                //Checks first if only one person has cards left THEN if the betting for the round is done - both are reasons to back out of the while loop (the current round, e.g the flop )
                 if (Dealer.IsActionOver()) { break; }
             }
         }
@@ -199,7 +199,7 @@ namespace PokerApp
 
         private static void AssignChipsToWinnerOfHand()
         {
-            if(!Dealer.IsSplitPot)
+            if(Dealer.IsSplitPot)
             {
                 foreach(var player in Dealer.SplitPotPlayers)
                 {
