@@ -11,7 +11,7 @@ namespace PokerApp
         private static Player Ford;
         private static Player Sherlock;
 
-        public static List<Player> Players;
+        public static List<Player> Players;    
 
 
         public static void Main()
@@ -21,6 +21,13 @@ namespace PokerApp
             Sherlock = new Player("Sherlock");
 
             Players = new List<Player>() { Ford, Tyrion, Sherlock }; // 
+
+
+
+
+            //This will have to come after Dealer.GetNumberOfPlayersAndNames();
+          
+
 
 
             //Ford.HasCards = true;
@@ -62,7 +69,7 @@ namespace PokerApp
 
         public static void PlayHand()
         {
-            //TakeTheBlinds();            
+            Dealer.TakeTheBlinds();            
 
             PlayPhase("PreFlop");
 
@@ -130,11 +137,11 @@ namespace PokerApp
                             switch (Players[i].LastMove)
                             {
                                 case "fold":
-                                case "f":
                                     Players[i].Fold();
                                     break;
 
-                                case "check":                                
+                                case "check":
+                                case "c":
                                     Players[i].Check();
                                     break;
 
@@ -181,8 +188,9 @@ namespace PokerApp
             var PlayersInHand = Board.GetPlayersInHand();
 
             if (PlayersInHand.Count < 2)
-            {                
+            {           
                 Dealer.HandWinner = PlayersInHand[0];
+                Dealer.HandWinner.BestHandType = Dealer.HandWinner.GetStrongestHandType();
                 Output.PrintHandResult();
             }
             else

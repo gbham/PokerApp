@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using static PokerApp.Output;
+
 
 namespace PokerApp
 {
@@ -52,7 +52,6 @@ namespace PokerApp
         public int ChipsBetThisRound { get { return chipsBetThisRound; } set { chipsBetThisRound = value; } }        
         public string CardOne { get { return cardOne; } set { cardOne = value; } }
         public string CardTwo { get { return cardTwo; } set { cardTwo = value; } }
-
         
         private string ERR_INVALID_MOVE = "*** [ERROR] Illegal move made. ***";
 

@@ -11,6 +11,8 @@ namespace PokerApp
         private static string illegalMoveErrorMsg;
         private static bool isSplitPot;
         private static List<Player> splitPotPlayers;
+        private static int SmallBlindCounter = 0;
+        private static int BigBlindCounter = 1;
 
         public static Player HandWinner { get { return handWinner; } set { handWinner = value; } }
         public static string IllegalMoveErrorMsg { get { return illegalMoveErrorMsg; } set { illegalMoveErrorMsg = value; } }
@@ -37,19 +39,15 @@ namespace PokerApp
 
         internal static void DealHoleCards()
         {
+            Board.CurrentPhase = "PreFlop";
             Deck.ShuffleDeck();
 
-            Board.ResetBoardValues();            
-            Board.ResetPlayerValues();
-            IsSplitPot = false;
-            
-            Board.HandIsLive = true;
-            Board.CurrentPhase = "PreFlop";            
+            ResetValues();                            
 
             foreach (var player in Players)
             {
-                //will need to eventually adjust 0 to equal the blinds for some players depending on position - well that completely depends on where in the code the blinds are "taken", atm it is done after this
-                if(player.Chips > 0)
+                //"10" is enough for the big blind
+                if(player.Chips > 10)
                 {   
                     DealCardsToPlayer(player);
                 }
@@ -63,6 +61,56 @@ namespace PokerApp
             {
                 Output.PrintNewlyDealtCards(player);                        
             }
+        }
+
+        //Need to properly test with more than 3 players and mix in some players with no chips so see it can skip over that postion properly 
+
+        internal static void TakeTheBlinds()
+        {            
+            //Checks if the current player has cards and therefore has over 10 chips, meaning they are suitable for the small blind
+            while (true)
+            {
+                if (SmallBlindCounter >= Players.Count) { SmallBlindCounter = 0; }
+
+                if (Players[SmallBlindCounter].HasCards == true)
+                {
+                    Players[SmallBlindCounter].Chips -= Board.SmallBlind;
+                    break;
+                }
+                else
+                {
+                    SmallBlindCounter++;
+                    BigBlindCounter++;
+                }
+            }
+
+            //Checks if the current player has cards and therefore has over 10 chips, meaning they are suitable for the big blind
+            while (true)
+            {
+                if (BigBlindCounter >= Players.Count) { BigBlindCounter = 0; }
+
+                if (Players[BigBlindCounter].HasCards == true)
+                {
+                    Players[BigBlindCounter].Chips -= Board.BigBlind;
+                    break;                    
+                }
+                else
+                {
+                    BigBlindCounter++;
+                }
+            }
+            SmallBlindCounter++;
+            BigBlindCounter++;
+            
+        }
+
+        private static void ResetValues()
+        {
+            Board.ResetBoardValues();
+            Board.ResetPlayerValues();
+
+            Board.HandIsLive = true;
+            IsSplitPot = false;            
         }
 
         internal static void DealCardsToPlayer(Player player)
@@ -143,39 +191,6 @@ namespace PokerApp
            
             return true;
         }
-       
-
-        //this closely resembles IsActionOver(). This solves an issue with a player in the later postions of Players List getting incorrectly asked to make a move after their bet for this round has already been called
-        //The IsActionOver() gets called after the code has looped through all players in Players List. I need PlayersHaveBetEqualAmounts() because I have to break out of 2 loops, a 'for' loop in some scenarios and a 'while' loop when each round of betting is done
-        internal static bool PlayersHaveBetEqualAmounts()
-        {
-            var PlayersInTheHand = Board.GetPlayersInHand();
-            var counter = 0;
-            
-            for (var i = 1; i < PlayersInTheHand.Count; i++)
-            {
-                if (PlayersInTheHand[i].ChipsBetThisRound > 0 && PlayersInTheHand[i].ChipsBetThisRound == PlayersInTheHand[i - 1].ChipsBetThisRound)
-                {
-                    counter++;
-                }
-            }
-            
-            if (counter >= PlayersInTheHand.Count - 1) { return true; }
-            
-            return false;
-        }
-
-        internal static void CheckForGameWinner()
-        {
-            foreach (Player player in Players)
-            {
-                if (player.Chips == 3000) //replace with TotalAmountOfChipsInPlay
-                {
-                    App.GameOver = true;
-                    Output.PrintGameOver();                    
-                }
-            }
-        }
 
         internal static void DeterminePlayerWithBestHand()
         {     
@@ -222,8 +237,7 @@ namespace PokerApp
         }
 
         private static void DetermineBestVersionOfStrongestHandType(List<Player> potentialWinners)
-        {
-            
+        {            
             //I need to repeat the same process with PotentialWinners list and kickers. if they equal the same as the current highest then add them to list, at the we remove any that dont equal the highest value, then from there start to look at the next kicker
             //All players in PotentialWinners should have the same BestHandType if they are at this stage in the code, so the "[0]" index is irrelevant
             switch (potentialWinners[0].BestHandType)
@@ -265,43 +279,78 @@ namespace PokerApp
                     break;
 
                 case 9:
-                    //dont need one for royal flush as if more than 1 person has it then it is automatically a split pot with everyone with cards as it must be the 5 cards on the board
+                    //dont need one for royal flush as if more than 1 person has it then it is automatically a split pot as it must be the 5 cards on the board 
                     break;
-
-
-                    //....
-                    //....
 
 
             }
         }
 
-        //private static void DetermineBestRoyalFlushFound(List<Player> potentialWinners)
-        //{            
-        //}
-
-        //private static void DetermineBestStraightFlushFound(List<Player> potentialWinners)
-        //{            
-        //}
-
-        //private static void DetermineBestFullHouse(List<Player> potentialWinners)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        private static void DetermineBestFlush(List<Player> potentialWinners)
+        private static void DetermineBestOnePair(List<Player> players)
         {
-            DeterminePlayerWithBestKickers(potentialWinners);
+            var potentialWinners = new List<Player>();
+            HandWinner = players[0];
+
+            for (var i = 1; i < Players.Count; i++)
+            {
+                if (Players[i].HighestPair > HandWinner.HighestPair)
+                {
+                    HandWinner = Players[i];
+                }
+                else if (Players[i].HighestPair == HandWinner.HighestPair)
+                {
+                    potentialWinners.Add(Players[i]);
+                }
+            }
+
+            //Now that the loop above is complete and we know the winner for sure, we have to go through the list of "PotentialWinners" and remove any that dont match the winner
+            potentialWinners.RemoveAll(item => item.HighestPair != HandWinner.HighestPair);
+
+            if (potentialWinners.Count > 0)
+            {
+                potentialWinners.Add(HandWinner);//dont think I actually need this since HandWinner always gets assigned to players[0] to start the function now. 
+                potentialWinners = potentialWinners.Distinct().ToList(); //Im not sure this is actually needed since I now start the for loop above at 1 but no harm in keeping it
+
+                DeterminePlayerWithBestKickers(potentialWinners);
+            }
         }
 
-        private static void DetermineBestFourOfAKind(List<Player> potentialWinners)
-        {  
-            DeterminePlayerWithBestKickers(potentialWinners);            
-        }
-
-        private static void DetermineBestStraight(List<Player> potentialWinners)
+        //closely resembles how a single pair is determined
+        private static void DetermineBestTwoPair(List<Player> players)
         {
-            DeterminePlayerWithBestKickers(potentialWinners);
+            var potentialWinners = new List<Player>();
+            HandWinner = players[0];
+
+            for (var i = 1; i < Players.Count; i++)
+            {
+                if (Players[i].HighestPair > HandWinner.HighestPair)
+                {
+                    HandWinner = Players[i];
+                }
+                else if (Players[i].HighestPair == HandWinner.HighestPair)
+                {
+                    if (Players[i].SecondHighestPair > HandWinner.SecondHighestPair)
+                    {
+                        HandWinner = Players[i];
+                    }
+                    else if (Players[i].SecondHighestPair == HandWinner.SecondHighestPair)
+                    {
+                        potentialWinners.Add(Players[i]);
+                    }
+                }
+            }
+
+            ////Now that the loop above is complete and we know the winner for sure, we have to go through the list of "PotentialWinners" and remove any that dont match the winner            
+            potentialWinners.RemoveAll(item => item.HighestPair != HandWinner.HighestPair);
+            potentialWinners.RemoveAll(item => item.SecondHighestPair != HandWinner.SecondHighestPair);
+
+            if (potentialWinners.Count > 0)
+            {
+                potentialWinners.Add(HandWinner); //dont think I actually need this since HandWinner always gets assigned to players[0] to start the function now. 
+                potentialWinners = potentialWinners.Distinct().ToList(); // Im not sure this is actually needed since I now start the for loop above at 1 but no harm in keeping it
+
+                DeterminePlayerWithBestKicker(potentialWinners);
+            }
         }
 
         private static void DetermineBestThreeOfAKind(List<Player> players)
@@ -330,75 +379,36 @@ namespace PokerApp
 
                 DeterminePlayerWithBestKickers(potentialWinners);
             }
-        }        
-
-        //closely resembles how a single pair is determined
-        private static void DetermineBestTwoPair(List<Player> players)
-        {
-            var potentialWinners = new List<Player>();
-            HandWinner = players[0];
-
-            for (var i = 1; i < Players.Count; i++)
-            {
-                if (Players[i].HighestPair > HandWinner.HighestPair)
-                {
-                    HandWinner = Players[i];
-                }
-                else if (Players[i].HighestPair == HandWinner.HighestPair)
-                {
-                    if (Players[i].SecondHighestPair > HandWinner.SecondHighestPair)
-                    {
-                        HandWinner = Players[i];
-                    }
-                    else if (Players[i].SecondHighestPair == HandWinner.SecondHighestPair)
-                    {
-                        potentialWinners.Add(Players[i]);
-                    }                        
-                }
-            }
-
-            ////Now that the loop above is complete and we know the winner for sure, we have to go through the list of "PotentialWinners" and remove any that dont match the winner            
-            potentialWinners.RemoveAll(item => item.HighestPair != HandWinner.HighestPair);
-            potentialWinners.RemoveAll(item => item.SecondHighestPair != HandWinner.SecondHighestPair);            
-
-            if (potentialWinners.Count > 0)
-            {
-                potentialWinners.Add(HandWinner); //dont think I actually need this since HandWinner always gets assigned to players[0] to start the function now. 
-                potentialWinners = potentialWinners.Distinct().ToList(); // Im not sure this is actually needed since I now start the for loop above at 1 but no harm in keeping it
- 
-                DeterminePlayerWithBestKicker(potentialWinners);
-            }
         }
 
-
-        private static void DetermineBestOnePair(List<Player> players)
+        private static void DetermineBestStraight(List<Player> potentialWinners)
         {
-            var potentialWinners = new List<Player>();
-            HandWinner = players[0];
-
-            for (var i = 1; i < Players.Count; i++)
-            {
-                if (Players[i].HighestPair > HandWinner.HighestPair)
-                {
-                    HandWinner = Players[i];
-                }
-                else if (Players[i].HighestPair == HandWinner.HighestPair)
-                {
-                    potentialWinners.Add(Players[i]);
-                }
-            }
-
-            //Now that the loop above is complete and we know the winner for sure, we have to go through the list of "PotentialWinners" and remove any that dont match the winner
-            potentialWinners.RemoveAll(item => item.HighestPair != HandWinner.HighestPair);
-
-            if (potentialWinners.Count > 0)
-            {
-                potentialWinners.Add(HandWinner);//dont think I actually need this since HandWinner always gets assigned to players[0] to start the function now. 
-                potentialWinners = potentialWinners.Distinct().ToList(); //Im not sure this is actually needed since I now start the for loop above at 1 but no harm in keeping it
-
-                DeterminePlayerWithBestKickers(potentialWinners);
-            }  
+            DeterminePlayerWithBestKickers(potentialWinners);
         }
+
+        private static void DetermineBestFlush(List<Player> potentialWinners)
+        {
+            DeterminePlayerWithBestKickers(potentialWinners);
+        }
+
+        //private static void DetermineBestFullHouse(List<Player> potentialWinners)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        private static void DetermineBestFourOfAKind(List<Player> potentialWinners)
+        {
+            DeterminePlayerWithBestKickers(potentialWinners);
+        }
+
+        //private static void DetermineBestStraightFlushFound(List<Player> potentialWinners)
+        //{            
+        //}
+
+        //private static void DetermineBestRoyalFlushFound(List<Player> potentialWinners)
+        //{            
+        //}
+
 
         //I think this may be redundant now. DeterminePlayerWithBestKickers() is very similiar and I think it can handle the situation where we only have a single kicker
         private static void DeterminePlayerWithBestKicker(List<Player> PotentialWinners)
@@ -497,5 +507,38 @@ namespace PokerApp
 
             return highestBetThisRound;
         }
+
+        //this closely resembles IsActionOver(). This solves an issue with a player in the later postions of Players List getting incorrectly asked to make a move after their bet for this round has already been called
+        //The IsActionOver() gets called after the code has looped through all players in Players List. I need PlayersHaveBetEqualAmounts() because I have to break out of 2 loops, a 'for' loop in some scenarios and a 'while' loop when each round of betting is done
+        internal static bool PlayersHaveBetEqualAmounts()
+        {
+            var PlayersInTheHand = Board.GetPlayersInHand();
+            var counter = 0;
+
+            for (var i = 1; i < PlayersInTheHand.Count; i++)
+            {
+                if (PlayersInTheHand[i].ChipsBetThisRound > 0 && PlayersInTheHand[i].ChipsBetThisRound == PlayersInTheHand[i - 1].ChipsBetThisRound)
+                {
+                    counter++;
+                }
+            }
+
+            if (counter >= PlayersInTheHand.Count - 1) { return true; }
+
+            return false;
+        }
+
+        internal static void CheckForGameWinner()
+        {
+            foreach (Player player in Players)
+            {
+                if (player.Chips == Board.TotalAmountOfChipsInPlay)
+                {
+                    App.GameOver = true;
+                    Output.PrintGameOver();
+                }
+            }
+        }
+
     }
 }

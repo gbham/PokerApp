@@ -28,6 +28,7 @@
 
 Desired Features:
 -Blinds
+-Only Show cards of the winner
 -Muck or show hands									(thought it might be hard at first but really the only condtion I care about when it comes down to whether to provide the player the option to much or show is when all other players fold, otherwise there is no option whether to show or fold)
 -Dealer chip, rotating who is dealt cards first		(First thoughts are to have a list of the players that changes after each hand played. I think just putting the player at position 1 in the list to the end should solve the issue.)
 -Min raises

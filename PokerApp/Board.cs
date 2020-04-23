@@ -9,8 +9,9 @@ namespace PokerApp
     static class Board
     {
         private static int chipsInPot = 0;
+        private static int startingStack = 1000;
 
-        private static int totalAmountOfChipsInPlay = Player.StartingStack * App.Players.Count;
+        private static int totalAmountOfChipsInPlay = startingStack * App.Players.Count;
 
         private static string flopSlot1;
         private static string flopSlot2;
@@ -20,7 +21,7 @@ namespace PokerApp
         private static bool handIsLive;
         private static string currentPhase = "";       
 
-        public static int TotalAmountOfChipsInPlay { get { return totalAmountOfChipsInPlay; } set { totalAmountOfChipsInPlay = value; } }
+        public static int TotalAmountOfChipsInPlay { get { return totalAmountOfChipsInPlay; } }
         public static int ChipsInPot { get { return chipsInPot; } set { chipsInPot = value; } }
         public static string FlopSlot1 { get { return flopSlot1; } set { flopSlot1 = value; } }
         public static string FlopSlot2 { get { return flopSlot2; } set { flopSlot2 = value; } }
@@ -28,8 +29,8 @@ namespace PokerApp
         public static string TurnSlot { get { return turnSlot; }   set { turnSlot = value; } }
         public static string RiverSlot { get { return riverSlot; } set { riverSlot = value; } }
         public static bool HandIsLive { get { return handIsLive; } set { handIsLive = value; } }
-        public static string CurrentPhase { get { return currentPhase; } set { currentPhase = value; } }        
-
+        public static string CurrentPhase { get { return currentPhase; } set { currentPhase = value; } }
+       
         internal static List<Player> GetPlayersInHand()
         {
             var PlayersInTheHand = new List<Player>();
