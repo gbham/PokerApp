@@ -11,13 +11,17 @@ namespace PokerApp
         private static string illegalMoveErrorMsg;
         private static bool isSplitPot;
         private static List<Player> splitPotPlayers;
+
         private static int SmallBlindCounter = 0;
         private static int BigBlindCounter = 1;
+
+        public static int SmallBlind = 5;
+        public static int BigBlind = 10;
 
         public static Player HandWinner { get { return handWinner; } set { handWinner = value; } }
         public static string IllegalMoveErrorMsg { get { return illegalMoveErrorMsg; } set { illegalMoveErrorMsg = value; } }
         public static bool IsSplitPot { get { return isSplitPot; } set { isSplitPot = value; } }
-        public static List<Player> SplitPotPlayers { get { return splitPotPlayers; } set { splitPotPlayers = value; } }
+        public static List<Player> SplitPotPlayers { get { return splitPotPlayers; } set { splitPotPlayers = value; } }                
 
         internal static void GetNumberOfPlayersAndNames()
         {
@@ -74,7 +78,7 @@ namespace PokerApp
 
                 if (Players[SmallBlindCounter].HasCards == true)
                 {
-                    Players[SmallBlindCounter].Chips -= Board.SmallBlind;
+                    Players[SmallBlindCounter].Chips -= SmallBlind;
                     break;
                 }
                 else
@@ -91,7 +95,7 @@ namespace PokerApp
 
                 if (Players[BigBlindCounter].HasCards == true)
                 {
-                    Players[BigBlindCounter].Chips -= Board.BigBlind;
+                    Players[BigBlindCounter].Chips -= BigBlind;
                     break;                    
                 }
                 else

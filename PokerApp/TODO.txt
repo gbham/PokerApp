@@ -23,7 +23,7 @@
 -have some code that checks the user has not inputted 2 move options (like check and bet, or call and raise in the same move, not sure what would actually happen in this scenario).
 -Split pot feature is basic. It doesnt determine if one player should get a bigger proportion of the winnings, at the moment it just splits the pot equally.
 -Maybe worth making the distinction or highlight the use of the word "Kickers", or "player.ListOfKickers". For a pair, this property refers to the 3 next highest cards outside the pair. For a Straight/Flush, this property refers to the highest value cards of that hand type, as the hand type is made up of 5 cards. Compared to a pair that only requires 2 cards.
-
+-*************Make a remove excess kickers fucntion that takes in the position to start as a parameter. Then in there I can check if anything is actually needing remove, which will save me making mess in a bunch of functions
 
 
 Desired Features:

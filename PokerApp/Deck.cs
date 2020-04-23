@@ -40,15 +40,8 @@ namespace PokerApp
         //Replacing all suits and face cards so calculations can be done against ints
         internal static List<int> ReplaceFaceCardsWithInts(List<string> fullBoardList)
         {
-            //If the hand is over before all the board cards are revealed then I will get a Format Exception when trying to convert an empty/blank string to an int at this line: var onlyNumbersList = fullBoardList.Select(int.Parse).ToList(); 
-            //Removing empty values instead would work for this functiona alone, but not for the app as a whole as I need to remove excess values for different hand types at a later stage in the code. Could probs make it work but would add unwanted complexity
-            for (var i = 0; i < fullBoardList.Count; i++)
-            {
-                if(string.IsNullOrWhiteSpace(fullBoardList[i]))
-                {
-                    fullBoardList[i] = "0";
-                }
-            } 
+            //Removing any empty positions so I dont get a Format Exception when trying to convert an empty string into an int below
+            fullBoardList = fullBoardList.Where(item => !string.IsNullOrWhiteSpace(item)).ToList();
 
             //think I can also do something like below using Select().ToList() for replace, instead of looping through each position
             for (var i = 0; i < fullBoardList.Count; i++)

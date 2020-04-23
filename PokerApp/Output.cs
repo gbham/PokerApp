@@ -100,7 +100,7 @@ namespace PokerApp
                 Console.WriteLine($"\nThe Winner of the hand is {Dealer.HandWinner.Name}.");
             }
 
-            Console.WriteLine($"\nThey have the hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}. With the kicker of: {Dealer.HandWinner.ListOfKickers[0]} \n"); //
+            Console.WriteLine($"\nThey have the hand type of: {Deck.PokerHandsList[Dealer.HandWinner.BestHandType]}.  \n"); //With the kicker of: {Dealer.HandWinner.ListOfKickers[0]}
 
             Console.WriteLine("");
 

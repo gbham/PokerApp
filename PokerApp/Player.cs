@@ -521,7 +521,10 @@ namespace PokerApp
                 fullBoardList.RemoveAll(item => item.Contains(matchedChar));
 
                 this.ListOfKickers = Utils.GetBestKickersFrom(fullBoardList);
-                this.ListOfKickers.RemoveRange(3, this.ListOfKickers.Count - 3);
+                if(this.ListOfKickers.Count > 3)
+                {
+                    this.ListOfKickers.RemoveRange(3, this.ListOfKickers.Count - 3);
+                }                
 
                 return true; 
             }
@@ -622,8 +625,11 @@ namespace PokerApp
             fullBoardListInt.Reverse();
 
             this.ListOfKickers = fullBoardListInt;
-            this.ListOfKickers.RemoveRange(5, this.ListOfKickers.Count - 5);        
 
+            if(this.ListOfKickers.Count > 5)
+            {
+                this.ListOfKickers.RemoveRange(5, this.ListOfKickers.Count - 5);
+            }  
         }
 
         //This is needed as I only retain the highest value in a straight as that is all that is needed to determine the best straight. 
