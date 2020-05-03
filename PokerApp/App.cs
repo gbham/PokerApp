@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PokerApp
 {
@@ -10,23 +11,31 @@ namespace PokerApp
         private static Player Tyrion;
         private static Player Ford;
         private static Player Sherlock;
+        private static Player player4;
+        private static Player player5;
 
-        public static List<Player> Players;    
-
+        public static List<Player> Players;
+        public static List<Player> PlayersOrderOfAction; //Position 1 is the player Under the Gun (UTG), and the final 2 positions in the list will be the players with the small and big blind
 
         public static void Main()
         {
             Ford = new Player("Ford");
             Tyrion = new Player("Tyrion");
             Sherlock = new Player("Sherlock");
+            player4 = new Player("player4");
+            player5 = new Player("player5");
 
-            Players = new List<Player>() { Ford, Tyrion, Sherlock }; // 
+            Players = new List<Player>() { Ford, Tyrion, Sherlock, player4, player5 };
+            PlayersOrderOfAction = new List<Player>(Players) { };
+
+            
+
+            
+            
+            
+        
 
 
-
-
-            //This will have to come after Dealer.GetNumberOfPlayersAndNames();
-          
 
 
 
@@ -34,24 +43,25 @@ namespace PokerApp
             //Tyrion.HasCards = true;
             //Sherlock.HasCards = true;
 
+            //Ford.CardOne = "JD";
+            //Ford.CardTwo = "JH";
 
-            //Ford.CardOne = "JC";
-            //Ford.CardTwo = "2D";
-
-            //Tyrion.CardOne = "JC";
+            //Tyrion.CardOne = "10C";
             //Tyrion.CardTwo = "2D";
 
-            //Sherlock.CardOne = "6D";
+            //Sherlock.CardOne = "5D";
             //Sherlock.CardTwo = "2H";
 
-
             //Board.FlopSlot1 = "9C";
-            //Board.FlopSlot2 = "10C";
-            //Board.FlopSlot3 = "JC";
-            //Board.TurnSlot = "9C";
-            //Board.RiverSlot = "10C";
+            //Board.FlopSlot2 = "6C";
+            //Board.FlopSlot3 = "6C";
+            //Board.TurnSlot = "9H";
+            //Board.RiverSlot = "10H";
 
             //DetermineWinnerOfHand();
+
+
+
 
 
             //Dealer.GetNumberOfPlayersAndNames();
@@ -59,6 +69,8 @@ namespace PokerApp
             while (!GameOver)
             {
                 Dealer.DealHoleCards();
+
+                Dealer.TakeTheBlinds();                
 
                 PlayHand();
 
@@ -69,7 +81,7 @@ namespace PokerApp
 
         public static void PlayHand()
         {
-            Dealer.TakeTheBlinds();            
+            Dealer.DetermineUpdatedOrderOfAction();
 
             PlayPhase("PreFlop");
 
@@ -95,8 +107,6 @@ namespace PokerApp
 
         }
 
-        
-
         public static void PlayPhase(string round) //not sure if I will actualy need to use this string to differentiate between rounds but seems more than likely
         {
             foreach(var player in Players)
@@ -108,61 +118,58 @@ namespace PokerApp
             while (true)
             {
                 //would be nicer to use a foreach loop but I need to be able to incrememnt once back in the loop if the user wants to show/hide their cards or if they try an illegal move
-                for (var i = 0; i < Players.Count; i++)
+                for (var i = 0; i < PlayersOrderOfAction.Count; i++)
                 {
                     var PlayersInHand = Board.GetPlayersInHand();
                                                                                             //Dealer.IsActionOver() does what i want but i think the only problem is telling the difference between the start of a hand and everyone checking
-                    if (Players[i].HasCards && Players[i].Chips > 0 && PlayersInHand.Count > 1 ) 
+                    if (PlayersOrderOfAction[i].HasCards && PlayersOrderOfAction[i].Chips > 0 && PlayersInHand.Count > 1 ) 
                     {                      
-
                         Output.PrintGameInformation();
 
-                        Output.PrintPlayersTurnIsReady(Players[i]);
+                        Output.PrintPlayersTurnIsReady(PlayersOrderOfAction[i]);
 
-                        //blinds could potentially throws a spanner in the works for GetMoveOPtions depending on how I handle them. If I make blinds completely seperate to player.ChipsBetThisRound then I should be fine. - Actually, I might want to include them in player.ChipsBetThisRound. Now I think about it, they will need to be taken into consideration 
-
-                        var moveOptions = Players[i].GetMoveOptions();
+                        var moveOptions = PlayersOrderOfAction[i].GetMoveOptions();
 
                         Output.PrintPlayersMoveOptions(moveOptions);
 
                         //Need to add some instructions on format of user input and a help menu at some point
                         var input = Console.ReadLine();
 
-                        Players[i].LastMove = Utils.GetUserInputtedCommand(input);
+                        PlayersOrderOfAction[i].LastMove = Utils.GetUserInputtedCommand(input);
                         var value = Utils.GetUserInputtedValue(input);
 
-                        if (Players[i].IsIllegalMoveUsed(moveOptions, value)) { i -= 1; }
+                        if (PlayersOrderOfAction[i].IsIllegalMoveUsed(moveOptions, value)) { i -= 1; }
                         else
                         {
-                            switch (Players[i].LastMove)
+                            switch (PlayersOrderOfAction[i].LastMove)
                             {
                                 case "fold":
-                                    Players[i].Fold();
+                                    PlayersOrderOfAction[i].Fold();
                                     break;
 
                                 case "check":
                                 case "c":
-                                    Players[i].Check();
+                                    PlayersOrderOfAction[i].Check();
                                     break;
 
-                                case "call":                                
-                                    Players[i].Call();
+                                case "call":
+                                    PlayersOrderOfAction[i].Call();
                                     break;
 
-                                case "bet":                                
-                                    Players[i].Bet(Convert.ToInt32(value));
+                                case "bet":
+                                    PlayersOrderOfAction[i].Bet(Convert.ToInt32(value));
                                     break;
 
-                                case "raise":                                
-                                    Players[i].Raise(Convert.ToInt32(value));
+                                case "raise":
+                                    PlayersOrderOfAction[i].Raise(Convert.ToInt32(value));
                                     break;
 
                                 case "all":
-                                    Players[i].AllIn();
+                                    PlayersOrderOfAction[i].AllIn();
                                     break;
 
-                                case "show":                               
-                                    Players[i].RevealCards();
+                                case "show":
+                                    PlayersOrderOfAction[i].RevealCards();
                                     i -= 1;
                                     break;
 
@@ -201,7 +208,7 @@ namespace PokerApp
 
             AssignChipsToWinnerOfHand();
 
-            Console.WriteLine($"\nPress any button to continue to next hand...");
+            Console.WriteLine($"\nPress any key to continue...");
             Console.ReadKey();            
         }
 

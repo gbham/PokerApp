@@ -8,16 +8,15 @@ namespace PokerApp
     static class Dealer
     {
         private static Player handWinner;
-        private static string illegalMoveErrorMsg;
-        private static bool isSplitPot;
+        private static string illegalMoveErrorMsg;        
         private static List<Player> splitPotPlayers;
-
+        private static bool isSplitPot;
+        
         private static int SmallBlindCounter = 0;
         private static int BigBlindCounter = 1;
-
         public static int SmallBlind = 5;
         public static int BigBlind = 10;
-
+        
         public static Player HandWinner { get { return handWinner; } set { handWinner = value; } }
         public static string IllegalMoveErrorMsg { get { return illegalMoveErrorMsg; } set { illegalMoveErrorMsg = value; } }
         public static bool IsSplitPot { get { return isSplitPot; } set { isSplitPot = value; } }
@@ -25,7 +24,7 @@ namespace PokerApp
 
         internal static void GetNumberOfPlayersAndNames()
         {
-            Console.WriteLine($"Please enter the number of players wanting dealt in");
+            Console.WriteLine($"Please enter the number of players at the table");
             var userInput = Console.ReadLine();
             Console.Clear();
 
@@ -42,16 +41,13 @@ namespace PokerApp
         }
 
         internal static void DealHoleCards()
-        {
-            Board.CurrentPhase = "PreFlop";
+        {            
             Deck.ShuffleDeck();
-
             ResetValues();                            
 
             foreach (var player in Players)
-            {
-                //"10" is enough for the big blind
-                if(player.Chips > 10)
+            {                
+                if(player.Chips > BigBlind)
                 {   
                     DealCardsToPlayer(player);
                 }
@@ -67,8 +63,7 @@ namespace PokerApp
             }
         }
 
-        //Need to properly test with more than 3 players and mix in some players with no chips so see it can skip over that postion properly 
-
+        //Need to properly test with more than 3 players and mix in some players with no chips so see it can skip over that postion properly in all scenarios
         internal static void TakeTheBlinds()
         {            
             //Checks if the current player has cards and therefore has over 10 chips, meaning they are suitable for the small blind
@@ -79,6 +74,8 @@ namespace PokerApp
                 if (Players[SmallBlindCounter].HasCards == true)
                 {
                     Players[SmallBlindCounter].Chips -= SmallBlind;
+                    Board.ChipsInPot += SmallBlind;
+
                     break;
                 }
                 else
@@ -96,6 +93,8 @@ namespace PokerApp
                 if (Players[BigBlindCounter].HasCards == true)
                 {
                     Players[BigBlindCounter].Chips -= BigBlind;
+                    Board.ChipsInPot += BigBlind;
+
                     break;                    
                 }
                 else
@@ -103,18 +102,30 @@ namespace PokerApp
                     BigBlindCounter++;
                 }
             }
+
             SmallBlindCounter++;
-            BigBlindCounter++;
-            
+            BigBlindCounter++;            
+        }
+
+        //The App.Players list is consistent at the moment as the TakeTheBlinds() function relies on it
+        //The App.PlayersOrderOfAction list is adjusted so the first positition is UTG, and the final 2 positions are Small Blind and Big Blind (this isnt always correct, could be: [UTG], [...], [...], [SB], [ThisPlayerHasNoChips], [BB]. The player at the first position may have 0 chips too, but they will be skipped in the PlayHand() function 
+        //The player at the start of PlayersActionOrder is added to the end of the list as they will now be the big blind. The player at the first position is UTG
+
+        internal static void DetermineUpdatedOrderOfAction()
+        {            
+            //This while loop below is needed to handle the scenario that a player that should be big blind, actually has no chips so needs to be skipped over. 
+            //I handle this scenario in TakeTheBlinds() function, but need to handle the same situation in this function too
+            while (PlayersOrderOfAction[PlayersOrderOfAction.Count - 1] != Players[BigBlindCounter - 1]) // "BigBlindCounter - 1" because the current value of BigBlindCounter is plus one from what we desire. This is because TakeTheBlinds() increments both SmallBlindCounter and BigBlindCounter at the end of the function in preparation for the next time it is ran
+            {
+                PlayersOrderOfAction.Add(PlayersOrderOfAction[0]);
+                PlayersOrderOfAction.RemoveRange(0, 1);
+            }
         }
 
         private static void ResetValues()
         {
             Board.ResetBoardValues();
-            Board.ResetPlayerValues();
-
-            Board.HandIsLive = true;
-            IsSplitPot = false;            
+            Board.ResetPlayerValues();                        
         }
 
         internal static void DealCardsToPlayer(Player player)
@@ -172,9 +183,7 @@ namespace PokerApp
                 {
                     if (PlayersInTheHand[i].ChipsBetThisRound != PlayersInTheHand[i - 1].ChipsBetThisRound)
                     {
-                        //I JUST SWAPPED THIS IF STATEMENT WITH THE IF STATEMENT DIRECTLY BELOW, VERIFY THIS CHANGE DOES NOT BREAK ANYTHING BUT IT SEEMS FINE                       
-
-                        //If we are here then 2 players have bet different amounts this hand, if they both also have more than 0 chips then action must continue for the moment
+                        //If we are here then 2 players have bet different amounts this hand, so if they both also have more than 0 chips then action must continue
                         if (PlayersInTheHand[i].Chips > 0 && PlayersInTheHand[i - 1].Chips > 0)
                         {
                             return false;
@@ -295,15 +304,15 @@ namespace PokerApp
             var potentialWinners = new List<Player>();
             HandWinner = players[0];
 
-            for (var i = 1; i < Players.Count; i++)
+            for (var i = 1; i < players.Count; i++)
             {
-                if (Players[i].HighestPair > HandWinner.HighestPair)
+                if (players[i].HighestPair > HandWinner.HighestPair)
                 {
-                    HandWinner = Players[i];
+                    HandWinner = players[i];
                 }
-                else if (Players[i].HighestPair == HandWinner.HighestPair)
+                else if (players[i].HighestPair == HandWinner.HighestPair)
                 {
-                    potentialWinners.Add(Players[i]);
+                    potentialWinners.Add(players[i]);
                 }
             }
 
@@ -325,21 +334,21 @@ namespace PokerApp
             var potentialWinners = new List<Player>();
             HandWinner = players[0];
 
-            for (var i = 1; i < Players.Count; i++)
+            for (var i = 1; i < players.Count; i++)
             {
-                if (Players[i].HighestPair > HandWinner.HighestPair)
+                if (players[i].HighestPair > HandWinner.HighestPair)
                 {
-                    HandWinner = Players[i];
+                    HandWinner = players[i];
                 }
-                else if (Players[i].HighestPair == HandWinner.HighestPair)
+                else if (players[i].HighestPair == HandWinner.HighestPair)
                 {
-                    if (Players[i].SecondHighestPair > HandWinner.SecondHighestPair)
+                    if (players[i].SecondHighestPair > HandWinner.SecondHighestPair)
                     {
-                        HandWinner = Players[i];
+                        HandWinner = players[i];
                     }
-                    else if (Players[i].SecondHighestPair == HandWinner.SecondHighestPair)
+                    else if (players[i].SecondHighestPair == HandWinner.SecondHighestPair)
                     {
-                        potentialWinners.Add(Players[i]);
+                        potentialWinners.Add(players[i]);
                     }
                 }
             }
@@ -362,15 +371,15 @@ namespace PokerApp
             var potentialWinners = new List<Player>();
             HandWinner = players[0];
 
-            for (var i = 1; i < Players.Count; i++)
+            for (var i = 1; i < players.Count; i++)
             {
-                if (Players[i].HighestThreeOfAKindValue > HandWinner.HighestThreeOfAKindValue)
+                if (players[i].HighestThreeOfAKindValue > HandWinner.HighestThreeOfAKindValue)
                 {
-                    HandWinner = Players[i];
+                    HandWinner = players[i];
                 }
-                else if (Players[i].HighestThreeOfAKindValue == HandWinner.HighestThreeOfAKindValue)
+                else if (players[i].HighestThreeOfAKindValue == HandWinner.HighestThreeOfAKindValue)
                 {
-                    potentialWinners.Add(Players[i]);
+                    potentialWinners.Add(players[i]);
                 }
             }
 
@@ -429,12 +438,12 @@ namespace PokerApp
                 else if (PotentialWinners[i].ListOfKickers[0] == HandWinner.ListOfKickers[0])
                 {
                     //come back to handling this split pot stuff. I think I may just be able to have a more general function that checks for split pots, at the very least seperate functions, now not so sure about that
-                    IsSplitPot = true;
+                    Dealer.IsSplitPot = true;
                     SplitPotPlayers.Add(PotentialWinners[i]);
                 }
             }
 
-            if (IsSplitPot) { HandleSplitPot(); }       
+            if (Dealer.IsSplitPot) { HandleSplitPot(); }       
 
         }
 
@@ -452,7 +461,7 @@ namespace PokerApp
                     if (potentialWinners[i].ListOfKickers[x] > HandWinner.ListOfKickers[x])
                     {                        
                         HandWinner = potentialWinners[i];
-                        break;                                      //pretty sure I need this break here, test properly
+                        break;                                      
                     }
                     else if (potentialWinners[i].ListOfKickers[x] < HandWinner.ListOfKickers[x])
                     {
@@ -466,12 +475,12 @@ namespace PokerApp
 
                 if(counter == HandWinner.ListOfKickers.Count)
                 {
-                    IsSplitPot = true;
+                    Dealer.IsSplitPot = true;
                     SplitPotPlayers.Add(potentialWinners[i]);
                 }
             }
 
-            if (IsSplitPot) { HandleSplitPot(); }
+            if (Dealer.IsSplitPot) { HandleSplitPot(); }
             
         }
 
@@ -492,16 +501,16 @@ namespace PokerApp
             
             if (SplitPotPlayers.Count < 2)
             {
-                IsSplitPot = false;
+                Dealer.IsSplitPot = false;
             }
         }
 
         internal static int GetHighestBetThisRound()
         {
-            var Players = Board.GetPlayersInHand();
+            var players = Board.GetPlayersInHand();
             var highestBetThisRound = 0;
 
-            foreach (var player in Players)
+            foreach (var player in players)
             {
                 if (player.ChipsBetThisRound > highestBetThisRound)
                 {
@@ -543,6 +552,5 @@ namespace PokerApp
                 }
             }
         }
-
     }
 }

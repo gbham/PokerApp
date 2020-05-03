@@ -116,8 +116,8 @@ namespace PokerApp
 
         internal static void PrintCardInformation(Player player)
         {
-            Console.WriteLine($"[{player.Name}]'s cards are: [{player.CardOne}] [{player.CardTwo}]");
-            Console.WriteLine($"\npress any button to hide cards...");
+            Console.WriteLine($"\n[{player.Name}]'s cards are: [{player.CardOne}] [{player.CardTwo}]");
+            Console.WriteLine($"\npress any key to hide cards...");
         }
 
         internal static void PrintGameOver()

@@ -19,7 +19,8 @@ namespace PokerApp
         private static string turnSlot;
         private static string riverSlot;
         private static bool handIsLive;
-        private static string currentPhase = "";       
+        private static string currentPhase = "";
+        
 
         public static int TotalAmountOfChipsInPlay { get { return totalAmountOfChipsInPlay; } }
         public static int ChipsInPot { get { return chipsInPot; } set { chipsInPot = value; } }
@@ -30,7 +31,8 @@ namespace PokerApp
         public static string RiverSlot { get { return riverSlot; } set { riverSlot = value; } }
         public static bool HandIsLive { get { return handIsLive; } set { handIsLive = value; } }
         public static string CurrentPhase { get { return currentPhase; } set { currentPhase = value; } }
-       
+        
+
         internal static List<Player> GetPlayersInHand()
         {
             var PlayersInTheHand = new List<Player>();
@@ -58,11 +60,19 @@ namespace PokerApp
 
         internal static void ResetBoardValues()
         {
-            Board.FlopSlot1 = "";
-            Board.FlopSlot2 = "";
-            Board.FlopSlot3 = "";
-            Board.TurnSlot = "";
-            Board.RiverSlot = "";
+            FlopSlot1 = "";
+            FlopSlot2 = "";
+            FlopSlot3 = "";
+            TurnSlot = "";
+            RiverSlot = "";
+
+            ChipsInPot = 0;
+
+            HandIsLive = true;
+
+            Dealer.IsSplitPot = false;
+
+            CurrentPhase = "PreFlop";
         }
     }
 }

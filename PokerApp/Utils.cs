@@ -57,6 +57,44 @@ namespace PokerApp
             return Convert.ToInt32(value);
         }
 
+        internal static void DetermineBestHandFromBoardWith2ThreeOfAKinds(Player player, string matchedCharOne, string matchedCharTwo)
+        {
+            player.HighestThreeOfAKindValue = Utils.GetHighestCardFromTwoChoices(matchedCharOne, matchedCharTwo);
+
+            //if i have found 2 instances of three of a kind, then whatever is not the highest, will be the value for the pair in the "full house"
+            if (player.HighestThreeOfAKindValue.Equals(Deck.ReplaceFaceCardWithInts(matchedCharOne)))
+            {
+                player.HighestPair = Deck.ReplaceFaceCardWithInts(matchedCharTwo);
+            }
+            else
+            {
+                player.HighestPair = Deck.ReplaceFaceCardWithInts(matchedCharOne);
+            }
+        }
+
+        internal static void DetermineBestHandFromBoardWith2Pairs(Player player, string matchedCharOne, string matchedCharTwo)
+        {
+            player.HighestPair = Utils.GetHighestCardFromTwoChoices(matchedCharOne, matchedCharTwo);
+
+            //if i have found 2 instances of pair, then whatever is not the highest, will be the value for the 2nd highest pair
+            if (player.HighestPair.Equals(Deck.ReplaceFaceCardWithInts(matchedCharOne)))
+            {
+                player.SecondHighestPair = Deck.ReplaceFaceCardWithInts(matchedCharTwo);
+            }
+            else
+            {
+                player.SecondHighestPair = Deck.ReplaceFaceCardWithInts(matchedCharOne);
+            }
+        }
+
+        internal static void DetermineBestHandFromBoardWith3Pairs(Player player, string matchedCharOne, string matchedCharTwo, string matchedCharThree)
+        {
+            var highestChars = Utils.DetermineHighestCardsFromThreeChoices(matchedCharOne, matchedCharTwo, matchedCharThree);
+
+            player.HighestPair = highestChars[0];
+            player.SecondHighestPair = highestChars[1];
+        }
+
         //Not sure what I should do with the functions below, "Player" was gettnig a bit full and undecided on the best place to store them
         internal static int GetHighestCardFromTwoChoices(string matchedCharOne, string matchedCharTwo)
         {

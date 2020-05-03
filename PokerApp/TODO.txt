@@ -4,36 +4,28 @@
 -care with the difference between the hand ending due to someone folding and due to the hand ending cause someone is all in. I might treat some variables in too much of a general way
 -Need to account for someone being all in on the river and winning, but they cant get all the chips since they were short stack, I then need to assign those chips to the 2nd best hand and I suppose even one more time in a very rare scenario, I might be able to loop whatever process I create until the pot is "cleared"
 -ensure I have functions in the correct class, there can be some ambiguity with some functions that could belong to both Dealer/Board and maybe player. Keep these in mind and try find ways to seperate the functions into clearer categories 
--too much hassle to check if the regEx can return 2 matches on its own, since you then need to remove the first match and run the regEx anyway since 2 pairs wont be found in every scenario
--Error with DetermineHighestCardFromTwoChoices()
--make sure everything isnt case sensative or convert all user input to lowercase
--need to handle the situation where a player can only raise if they raise at least a certain amount, that amount must be greater than the value of the top bet this round by another player plus the min raise value
 -if i really want to show this - "Console.WriteLine($"[{this.Name}] has placed a bet of [{value}] chips.");" then I could just do another Console.ReadKey() after it so the user needs to hit a key before the next player will be presented with their move options
 -phases, stage, round, not sure what I like best, dont mix and match as it will just lead to unnecessary confussion
--stop presenting players with the option to fold if the ability to check is legal
+-When a player tries to fold when they can check, have a little message saying "are you sure you want to fold?". p sure all i need to do is check if any players have bet this round
 -the player class is a bit of a shit show, need to better sort/seperate the functions within there
--*At the moment kickers are being assigned in specific functions for hand types. In time I could make it a global function if I just created a list in each specific hand type function of all the cards that can be considered for kicker. In the end though im not sure if this would be worth it. 
 -I do a lot of similiar stuff with "potentialWinners" for both hand type and kicker, could probably extract some of this functionality into common functions
 -still a bit to do for the fullhouse function but no work on kickers at all.
 -care with properties like BestThreeOfAKind and so on. I havent run into any problems as of yet but I guess there could be scenarios where I am not resetting all these variables properly and the previous hand data might persist to the next
 -maybe look to combine the Board/Deck class if possible, both dont have very much within. More important problem is sorting the player class
--keep in mind when detmerning split pot from kickers that only 5 cards can be used. Im if the situation is handled where illegal cards are being used in the comparison, for example, if two players share the same pair and the same 3 next highest cards then it doesnt matter what the other 2 cards are that the player can try make his best hand with, it should be a split pot in that situation to I have to ensure that the final 2 cards are not compared in that situation. I dont think it should be hard if it isnt handled already since each hand type has a specifc function to check for its existence
--i think there are still a few places where I am adding items that match to a list, then at the end going through that list and figuring out the desired values in a long roundabout way. use something like this:  "SplitPotPlayers.RemoveAll(item => item.ListOfKickers[0] < HandWinner.ListOfKickers[0]);""
--not sure if i already have a note for it but need to ensure that Player.ListOfKickers only contains the kickers that are to be compared, not any extra, for example, for 2 pair, I should remove all kickers but the highest value, as that is the only value that matters, if that value equals the same as another player with the same 2 pair then there should be a split pot
--have some code that checks the user has not inputted 2 move options (like check and bet, or call and raise in the same move, not sure what would actually happen in this scenario).
+-keep in mind when detmerning split pot from kickers that only 5 cards can be used. If the situation is handled where illegal cards are being used in the comparison, for example, if two players share the same pair and the same 3 next highest cards then it doesnt matter what the remaining 2 cards are, it should be a split pot in that situation. So have to ensure that the final 2 cards are not compared in that situation. 
+-need to handle the situation where a user has inputted 2 move options (like check and bet, or call and raise in the same move, not sure what would actually happen in this scenario).
 -Split pot feature is basic. It doesnt determine if one player should get a bigger proportion of the winnings, at the moment it just splits the pot equally.
--Maybe worth making the distinction or highlight the use of the word "Kickers", or "player.ListOfKickers". For a pair, this property refers to the 3 next highest cards outside the pair. For a Straight/Flush, this property refers to the highest value cards of that hand type, as the hand type is made up of 5 cards. Compared to a pair that only requires 2 cards.
--*************Make a remove excess kickers fucntion that takes in the position to start as a parameter. Then in there I can check if anything is actually needing remove, which will save me making mess in a bunch of functions
-
+-Maybe worth making the distinction or highlight the use of the word "Kickers", or "player.ListOfKickers". For a pair, this property refers to the 3 next highest cards outside the pair. For a Flush, this property refers to the 5 highest value cards of the matched suit. 
+-The StraightFound() function is throwing a strange error, investigate
 
 Desired Features:
--Blinds
+-Make function to remove excess kickers
 -Only Show cards of the winner
 -Muck or show hands									(thought it might be hard at first but really the only condtion I care about when it comes down to whether to provide the player the option to much or show is when all other players fold, otherwise there is no option whether to show or fold)
--Dealer chip, rotating who is dealt cards first		(First thoughts are to have a list of the players that changes after each hand played. I think just putting the player at position 1 in the list to the end should solve the issue.)
+-Dealer chip or some other indication of who is SB & BB
 -Min raises
 -User input format/help menu with example input
--Split pot
 -Tab autocomplete user options/rotate through them
 -Add chips
 -Highlight when showing the winner if the hand, what cards were used to create the best hand from the 7 availiable
+-Options menu to set the blinds, and more

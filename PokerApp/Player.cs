@@ -33,9 +33,6 @@ namespace PokerApp
         private string cardOne;
         private string cardTwo;
         
-
-        //Think I may also need a property to hold the 5 "best" cards, which I can then use to deduct the best kicker - not sure actually, determining the kicker might have to be a specific operation for each type of hand or could risk causing unneeded complexity 
-
         public string Name { get { return name; } set { name = value; } }
         public bool HasCards { get { return hasCards; } set { hasCards = value; } }
         public int Chips { get { return chips; } set { chips = value; } }
@@ -57,9 +54,9 @@ namespace PokerApp
 
         private string ERR_ATTEMPTING_TO_CALL_WITH_VALUE = "*** [ERROR] Cannot choose the amount of chips to [Call]. No value can be entered alongside [Call].  ***";
 
-        private string ERR_BET_IS_MORE_THAN_CHIP_STACK = "*** [ERROR] Cannot place a bet greater than your stack size. ***";
+        private string ERR_BET_IS_MORE_THAN_CHIP_STACK = "*** [ERROR] Cannot place a bet greater than your chip stack. ***";
 
-        private string ERR_RAISE_UNDER_REQUIRED_VALUE = "*** [ERROR] The amount bet is less than the chips required for a raise. ***";
+        private string ERR_RAISE_UNDER_REQUIRED_VALUE = "*** [ERROR] The amount bet is less than the chips required to raise. ***";
 
         internal void Fold() 
         {           
@@ -96,13 +93,6 @@ namespace PokerApp
                 return true;
             }
 
-            //Dont think this is needed anymore, the IF statement directly below now fulfills the same purpose, still have to add a min raise value to the IF statement below though
-            //if(value < this.ChipsNeededToCall)
-            //{
-            //    Dealer.IllegalMoveErrorMsg = "*** [ERROR] The amount bet is less than the chips required to match the current bet. ***";
-            //    return true;
-            //}
-
             if(moveOptions.Contains("raise"))
             {
                 var highestBetThisRound = Dealer.GetHighestBetThisRound();
@@ -120,7 +110,7 @@ namespace PokerApp
 
         internal void Check()
         {            
-            //Not sure if there is anything is to be done in here
+            //Not sure if there is anything to be done in here
         }
 
         internal void Call() 
@@ -287,9 +277,9 @@ namespace PokerApp
 
                 if (threeOfAKindMatchesTwo.Count == 1)
                 {
-                    var threeOfAKindMatchedCharTwo = GetMatchedCharFrom(threeOfAKindMatchesTwo[0]);                    
+                    var threeOfAKindMatchedCharTwo = GetMatchedCharFrom(threeOfAKindMatchesTwo[0]);
 
-                    DetermineBestHandFromBoardWith2ThreeOfAKinds(threeOfAKindMatchedCharOne, threeOfAKindMatchedCharTwo);
+                    Utils.DetermineBestHandFromBoardWith2ThreeOfAKinds(this, threeOfAKindMatchedCharOne, threeOfAKindMatchedCharTwo);
 
                     return true;
                 }
@@ -329,7 +319,8 @@ namespace PokerApp
                 fullBoardList.RemoveAll(item => !item.Contains(matchedSuit));
 
                 this.ListOfKickers = Utils.GetBestKickersFrom(fullBoardList);
-                this.ListOfKickers.RemoveRange(5, this.ListOfKickers.Count - 5);
+                RemoveExcessKickers(5);
+                //this.ListOfKickers.RemoveRange(5, this.ListOfKickers.Count - 5);
 
                 return true;
             }
@@ -377,7 +368,7 @@ namespace PokerApp
             {                
                 this.BestHandType = 5;
 
-                this.ListOfKickers[0] = GetHighestCardFromSortedMatchResult(matches[0]);
+                this.ListOfKickers[0] = GetHighestCardFromSortedStraight(matches[0]);
                 CheckForRoyalStraight(matches[0]);
                 
                 fullBoard = fullBoard.Replace(matches[0].ToString().Substring(0, 1), "");   
@@ -386,7 +377,7 @@ namespace PokerApp
 
                 if (matches2.Count > 0)
                 {
-                    this.ListOfKickers[0] = GetHighestCardFromSortedMatchResult(matches2[0]);
+                    this.ListOfKickers[0] = GetHighestCardFromSortedStraight(matches2[0]);
                     CheckForRoyalStraight(matches2[0]);
 
                     fullBoard = fullBoard.Replace(matches2[0].ToString().Substring(0, 1), ""); 
@@ -395,7 +386,7 @@ namespace PokerApp
 
                     if (matches3.Count > 0)
                     {
-                        this.ListOfKickers[0] = GetHighestCardFromSortedMatchResult(matches3[0]);
+                        this.ListOfKickers[0] = GetHighestCardFromSortedStraight(matches3[0]);
                         CheckForRoyalStraight(matches3[0]);
                     }
                 }
@@ -427,13 +418,19 @@ namespace PokerApp
 
                 fullBoardList.RemoveAll(item => item.Contains(matchedChar));
 
-                this.ListOfKickers = Utils.GetBestKickersFrom(fullBoardList);
-                this.ListOfKickers.RemoveRange(2, this.ListOfKickers.Count - 2);                
+                this.ListOfKickers = Utils.GetBestKickersFrom(fullBoardList);  
+                RemoveExcessKickers(2);
 
                 return true;
             }
 
             return false;
+        }
+
+        
+        private void RemoveExcessKickers(int index)
+        {
+            this.ListOfKickers.RemoveRange(index, this.ListOfKickers.Count - index);
         }
 
 
@@ -473,14 +470,14 @@ namespace PokerApp
                     
                     if (matches3.Count == 1)
                     {
-                        var matchedChar3 = GetMatchedCharFrom(matches3[0]);                        
+                        var matchedChar3 = GetMatchedCharFrom(matches3[0]);
 
-                        DetermineBestHandFromBoardWith3Pairs(matchedChar, matchedChar2, matchedChar3);
+                        Utils.DetermineBestHandFromBoardWith3Pairs(this, matchedChar, matchedChar2, matchedChar3);
 
                     }
                     else
                     {
-                        DetermineBestHandFromBoardWith2Pairs(matchedChar, matchedChar2);
+                        Utils.DetermineBestHandFromBoardWith2Pairs(this, matchedChar, matchedChar2);
                     }
 
                     //Remove the matched pairs from the list of all cards on the board so the kicker can be determined from what remains
@@ -491,7 +488,8 @@ namespace PokerApp
                     this.ListOfKickers.Reverse();
                     
                     //Only concerned with the best kicker, if they equal the same and so do the pairs then it is a split pot
-                    this.ListOfKickers.RemoveRange(1, this.ListOfKickers.Count - 1);
+                    //this.ListOfKickers.RemoveRange(1, this.ListOfKickers.Count - 1);
+                    RemoveExcessKickers(1);
 
                     return true;
                 }
@@ -523,7 +521,8 @@ namespace PokerApp
                 this.ListOfKickers = Utils.GetBestKickersFrom(fullBoardList);
                 if(this.ListOfKickers.Count > 3)
                 {
-                    this.ListOfKickers.RemoveRange(3, this.ListOfKickers.Count - 3);
+                    //this.ListOfKickers.RemoveRange(3, this.ListOfKickers.Count - 3);
+                    RemoveExcessKickers(3);
                 }                
 
                 return true; 
@@ -558,7 +557,7 @@ namespace PokerApp
         }
 
 
-        private int GetHighestCardFromSortedMatchResult(Match match)
+        private int GetHighestCardFromSortedStraight(Match match)
         {
             //This condition of "match.Length - 4" is needed for when the face cards are converted into numbers. I cant just take the 5 character to find the highest value, as ace will equal "14" so i need the final 2 characters in the sorted list
             //return Convert.ToInt32(match.ToString().Substring(4, match.Length - 4));
@@ -582,6 +581,7 @@ namespace PokerApp
 
                     break;
 
+                //For the rest below, if the char count is this high, then the straight must include a "10" and a "11"
                 case 7:
                     highestCard = Convert.ToInt32(match.ToString().Substring(5, 2));
                     break;
@@ -603,6 +603,7 @@ namespace PokerApp
 
             return highestCard;
         }
+
 
         //The matchedChar is always the first position in the string that is returned from var matches = someRegEx.Matches(string)
         private string GetMatchedCharFrom(Match match)
@@ -668,43 +669,9 @@ namespace PokerApp
             
         }
 
-        internal void DetermineBestHandFromBoardWith2ThreeOfAKinds(string matchedCharOne, string matchedCharTwo)
-        {
-            this.HighestThreeOfAKindValue = Utils.GetHighestCardFromTwoChoices(matchedCharOne, matchedCharTwo);
+        
 
-            //if i have found 2 instances of three of a kind, then whatever is not the highest, will be the value for the pair in the "full house"
-            if (this.HighestThreeOfAKindValue.Equals(Deck.ReplaceFaceCardWithInts(matchedCharOne)))
-            {
-                this.HighestPair = Deck.ReplaceFaceCardWithInts(matchedCharTwo);
-            }
-            else
-            {
-                this.HighestPair = Deck.ReplaceFaceCardWithInts(matchedCharOne);
-            }
-        }
-
-        internal void DetermineBestHandFromBoardWith2Pairs(string matchedCharOne, string matchedCharTwo)
-        {
-            this.HighestPair = Utils.GetHighestCardFromTwoChoices(matchedCharOne, matchedCharTwo);
-
-            //if i have found 2 instances of pair, then whatever is not the highest, will be the value for the 2nd highest pair
-            if (this.HighestPair.Equals(Deck.ReplaceFaceCardWithInts(matchedCharOne)))
-            {
-                this.SecondHighestPair = Deck.ReplaceFaceCardWithInts(matchedCharTwo);
-            }
-            else
-            {
-                this.SecondHighestPair = Deck.ReplaceFaceCardWithInts(matchedCharOne);
-            }
-        }
-
-        internal void DetermineBestHandFromBoardWith3Pairs(string matchedCharOne, string matchedCharTwo, string matchedCharThree)
-        {
-            var highestChars = Utils.DetermineHighestCardsFromThreeChoices(matchedCharOne, matchedCharTwo, matchedCharThree);
-
-            this.HighestPair = highestChars[0];
-            this.SecondHighestPair = highestChars[1];
-        }
+        
 
         
     }
